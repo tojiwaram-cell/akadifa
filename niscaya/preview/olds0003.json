@@ -1,0 +1,1 @@
+["async function persist(){\n  const okLocal = writeLocal();", "    if(j.data){ applyLoaded(j.data); writeLocal(); }", "    render(); startPolling();\n    syncBadge('ok', 'Tersimpan di VPS');\n    return;"]
