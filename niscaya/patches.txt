@@ -5,3 +5,4 @@
 0005-sinkron-penjualan.py
 0006-upgrade-deployer.py
 0007-titipan-toko.py
+0008-status-dp.py
