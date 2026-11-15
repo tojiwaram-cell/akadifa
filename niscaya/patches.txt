@@ -3,3 +3,4 @@
 0003-merek-otomatis.py
 0004-auto-refresh.py
 0005-sinkron-penjualan.py
+0006-upgrade-deployer.py
