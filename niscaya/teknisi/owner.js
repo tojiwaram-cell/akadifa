@@ -1,4 +1,4 @@
-/*TEK-OWNER v3*/
+/*TEK-OWNER v4*/
 /* ================= TEKNISI (akun terpisah, data di layanan /tapi) ================= */
 const TEK = { state:null, filterTek:'Semua', filterSt:'Aktif', bulan:'', loading:false, err:'', ver:0 };
 const TEK_ST_COLOR = {Antri:'#8590a2', Dikerjakan:'#cf9f02', Selesai:'#1f845a', Gagal:'#c9372c'};
@@ -106,7 +106,7 @@ function renderTeknisi(c, ta){
       <tbody>${rows.map(j => { const h = tekJam(j), telat = h!==null && j.targetJam && h > j.targetJam; const u = j.unit||{};
         return `<tr data-tkjob="${esc(j.id)}" style="cursor:pointer">
           <td class="mono dim">${esc(j.id)}</td>
-          <td><b>${esc(u.merek||'')} ${esc(u.tipe||'')}</b><div class="dim mono" style="font-size:11.5px">${esc(j.unitId||'')}</div></td>
+          <td><b>${esc(u.merek||'')} ${esc(u.tipe||'')}</b><div class="dim mono" style="font-size:11.5px">${esc(j.unitId||'')}${u.noSeri?' · SN '+esc(u.noSeri):''}</div></td>
           <td>${esc(j.jenis||'-')}<div class="dim" style="font-size:11.5px">${j.kategori==='mesin'?'Perbaikan mesin':'Service ringan'}</div></td>
           <td>${esc(tekAcc(j.teknisi).label)}</td>
           <td><span style="background:${TEK_ST_COLOR[j.status]||'#888'};color:#fff;border-radius:999px;padding:3px 9px;font-size:11.5px;font-weight:700">${esc(j.status)}</span>${j.biayaMasuk?' <span title="Biaya sudah masuk ke unit">✓</span>':''}</td>
@@ -129,7 +129,7 @@ function openTekJobModal(jid){
   const j = jid ? TEK.state.jobs.find(x=>x.id===jid) : null;
   const accs = TEK.state.accounts;
   const unitOpts = DATA.stock.filter(s => s.status!=='Sold' || (j && String(s.id)===String(j.unitId)))
-    .map(s => `<option value="${esc(s.id)}" ${j && String(j.unitId)===String(s.id)?'selected':''}>${esc(s.id)} — ${esc(s.merek)} ${esc(s.tipe)} (${esc(s.status)})</option>`).join('');
+    .map(s => `<option value="${esc(s.id)}" ${j && String(j.unitId)===String(s.id)?'selected':''}>${esc(s.id)} — ${esc(s.merek)} ${esc(s.tipe)} · SN ${esc(s.noSeri||'-')} (${esc(s.status)})</option>`).join('');
   const kat = j ? (j.kategori||'ringan') : 'ringan';
   const accOpt = (sel) => accs.map(a => `<option value="${esc(a.username)}" ${a.username===sel?'selected':''}>${esc(a.label)} (${esc(a.roleLabel)})</option>`).join('');
   const defTek = j ? j.teknisi : ((accs.find(a=>a.role===kat)||accs[0]||{}).username);
