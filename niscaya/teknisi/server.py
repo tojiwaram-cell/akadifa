@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # NISCAYA MAKASSAR — layanan akun teknisi (terpisah dari akun master).
 # Teknisi hanya bisa melihat & memperbarui pekerjaan miliknya. Owner dikenali lewat sesi master (/api/me).
-import json, os, re, time, secrets, hashlib, hmac, threading, urllib.request, base64
+import json, os, re, time, secrets, hashlib, hmac, threading, urllib.request, urllib.parse, base64, html as _html
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 from http.cookies import SimpleCookie
 
@@ -84,6 +84,142 @@ def tech_view(j):
             "catatanKerusakan", "hasil", "parts", "fotoSebelum", "fotoSesudah", "alasanGagal", "biayaMasuk", "diubah"]
     return {k: j.get(k) for k in keys}
 
+# ================= Halaman publik unit & katalog (rilis 0023) =================
+# Aplikasi owner mengirim cuplikan stok tanpa data rahasia (tanpa modal, supplier, pembeli) ke /tapi/owner/publik.
+# QR label berisi tautan /tapi/u/<ID> sehingga status & harga yang tampil selalu yang terbaru.
+PUB = os.path.join(STATE, "publik.json")
+PUB_LOCK = threading.Lock()
+WA_TOKO = os.environ.get("NISCAYA_WA", "628218942735")
+TOKO = "NISCAYA MAKASSAR"
+
+def pub_clean(x):
+    def n(v):
+        try: return max(0, int(round(float(v))))
+        except Exception: return 0
+    f = s(x.get("f"), 800)
+    return {"i": s(x.get("i"), 60), "m": s(x.get("m"), 60), "t": s(x.get("t"), 120), "p": s(x.get("p"), 80), "r": s(x.get("r"), 40),
+            "d": s(x.get("d"), 60), "l": s(x.get("l"), 60), "v": s(x.get("v"), 80), "h": n(x.get("h")), "k": n(x.get("k")), "a": n(x.get("a")),
+            "s": s(x.get("s"), 20), "f": f if re.match(r"^https?://", f, re.I) else "", "j": s(x.get("j"), 10)}
+
+def pub_save(units):
+    with PUB_LOCK:
+        os.makedirs(STATE, exist_ok=True)
+        tmp = PUB + ".tmp"
+        with open(tmp, "w", encoding="utf-8") as fh: json.dump({"ts": now(), "units": units}, fh, ensure_ascii=False)
+        os.replace(tmp, PUB)
+
+def pub_load():
+    try:
+        with open(PUB, encoding="utf-8") as fh: d = json.load(fh)
+        if isinstance(d.get("units"), list):
+            return {"ts": int(d.get("ts") or 0), "units": [pub_clean(x) for x in d["units"] if isinstance(x, dict) and s(x.get("i"))]}
+    except Exception: pass
+    return {"ts": 0, "units": []}
+
+def e(v): return _html.escape(str(v if v is not None else ""), quote=True)
+def rp(v): return "Rp " + "{:,}".format(int(v or 0)).replace(",", ".")
+def tgl(ts):
+    if not ts: return "-"
+    t = time.gmtime(ts + 8 * 3600)
+    bln = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"][t.tm_mon - 1]
+    return "%d %s %d, %02d.%02d WITA" % (t.tm_mday, bln, t.tm_year, t.tm_hour, t.tm_min)
+def foto(u):
+    m = re.search(r"drive\.google\.com/(?:file/d/|open\?id=|uc\?(?:export=\w+&)?id=)([A-Za-z0-9_-]{10,})", u or "")
+    return ("https://drive.google.com/thumbnail?id=%s&sz=w1000" % m.group(1)) if m else (u or "")
+def wa(text): return "https://wa.me/%s?text=%s" % (WA_TOKO, urllib.parse.quote(text))
+def nama(u): return (u["m"] + " " + u["t"]).strip() or u["i"]
+
+CSS = """*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;background:#f4f5fb;color:#1c1f2e}
+a{color:inherit}.top{background:linear-gradient(135deg,#4c2bd9,#7b3fe4);color:#fff;padding:14px 18px;display:flex;align-items:center;gap:10px}
+.top img{width:34px;height:34px;border-radius:8px;object-fit:cover;background:#fff}.top b{font-size:17px;letter-spacing:.5px}.top small{display:block;opacity:.8;font-size:12px}
+.wrap{max-width:980px;margin:0 auto;padding:16px}.card{background:#fff;border-radius:16px;box-shadow:0 4px 18px rgba(30,20,90,.08);overflow:hidden}
+.ph{width:100%;aspect-ratio:4/3;object-fit:cover;background:#eceaf8;display:block}.noph{width:100%;aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;background:#eceaf8;font-size:52px}
+.pad{padding:16px}.chip{display:inline-block;padding:5px 12px;border-radius:99px;font-weight:700;font-size:13px}
+.ok{background:#dcfce7;color:#166534}.bk{background:#ffedd5;color:#9a3412}.sd{background:#fee2e2;color:#991b1b}
+h1{font-size:22px;margin:10px 0 4px}h2{font-size:17px;margin:22px 0 10px}.id{color:#6b6f85;font-size:13px}
+table{width:100%;border-collapse:collapse;margin-top:12px}td{padding:8px 0;border-bottom:1px solid #eef0f6;font-size:14px}td:first-child{color:#6b6f85;width:38%}
+.price{font-size:26px;font-weight:800;color:#4c2bd9;margin-top:12px}.old{text-decoration:line-through;color:#9aa0b4;font-size:14px;margin-right:6px}
+.btn{display:block;text-align:center;text-decoration:none;background:#16a34a;color:#fff;font-weight:700;padding:13px;border-radius:12px;margin-top:14px}
+.btn.alt{background:#fff;color:#4c2bd9;border:2px solid #4c2bd9}.note{background:#fff7ed;border:1px solid #fed7aa;padding:12px;border-radius:12px;margin-top:12px;font-size:14px}
+.note.red{background:#fef2f2;border-color:#fecaca}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(165px,1fr));gap:12px}
+.it{text-decoration:none;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 2px 10px rgba(30,20,90,.07);display:flex;flex-direction:column}
+.it .pad{padding:10px}.it b{font-size:14px;display:block}.it span{font-size:12px;color:#6b6f85;display:block;margin-top:3px}.it .pr{color:#4c2bd9;font-weight:800;font-size:15px;margin-top:6px}
+.foot{color:#8a8fa6;font-size:12px;text-align:center;margin:22px 0 10px}.bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.bar input,.bar select{flex:1;min-width:150px;padding:11px 12px;border:1px solid #d9dcea;border-radius:10px;font-size:15px;background:#fff}
+@media(min-width:760px){.two{display:grid;grid-template-columns:1.1fr 1fr;gap:0}.two .ph,.two .noph{height:100%;aspect-ratio:auto;min-height:340px}}"""
+
+def shell(title, body):
+    return ("<!DOCTYPE html><html lang=\"id\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">"
+            "<meta name=\"robots\" content=\"noindex\"><title>%s</title><style>%s</style></head><body>"
+            "<div class=\"top\"><img src=\"/tapi/logo\" alt=\"\" onerror=\"this.remove()\"><div><b>%s</b><small>Laptop second berkualitas · Makassar</small></div></div>"
+            "<div class=\"wrap\">%s</div></body></html>") % (e(title), CSS, TOKO, body)
+
+def img(u, cls="ph"):
+    src = foto(u.get("f"))
+    return ("<img class=\"%s\" loading=\"lazy\" src=\"%s\" alt=\"\" onerror=\"this.outerHTML='<div class=&quot;noph&quot;>💻</div>'\">" % (cls, e(src))) if src else "<div class=\"noph\">💻</div>"
+
+def mini(u):
+    return ("<a class=\"it\" href=\"/tapi/u/%s\">%s<div class=\"pad\"><b>%s</b><span>%s</span><div class=\"pr\">%s</div></div></a>"
+            % (urllib.parse.quote(u["i"]), img(u), e(nama(u)), e(" · ".join(x for x in (u["p"], u["r"], u["d"]) if x)), rp(u["a"] or u["h"])))
+
+def mirip(units, u, n=6):
+    ready = [x for x in units if x["s"] == "Ready" and (x["a"] or x["h"]) and x["i"] != (u or {}).get("i")]
+    if not u: return ready[:n]
+    harga = u["a"] or u["h"] or 0
+    def skor(x):
+        sk = 0 if x["m"].lower() == u["m"].lower() else 1
+        hx = x["a"] or x["h"]
+        return (sk + (abs(hx - harga) / harga if harga else 1), hx)
+    return sorted(ready, key=skor)[:n]
+
+def page_unit(pub, u, uid):
+    units = pub["units"]; upd = "<div class=\"foot\">Data stok diperbarui %s</div>" % e(tgl(pub.get("ts")))
+    kat = "<a class=\"btn alt\" href=\"/tapi/katalog\">Lihat semua laptop yang tersedia</a>"
+    if not u:
+        body = ("<div class=\"card pad\"><span class=\"chip sd\">Tidak ditemukan</span><h1>Unit %s tidak ada di daftar stok</h1>"
+                "<p class=\"id\">Mungkin kodenya salah atau unit sudah dikeluarkan dari stok.</p>%s<a class=\"btn\" href=\"%s\">Tanya via WhatsApp</a></div>%s"
+                % (e(uid), kat, e(wa("Halo %s, saya mau tanya unit %s." % (TOKO, uid))), upd))
+        return shell("Unit tidak ditemukan · " + TOKO, body)
+    st = u["s"]
+    spek = "".join("<tr><td>%s</td><td>%s</td></tr>" % (k, e(v)) for k, v in
+                   (("Merek", u["m"]), ("Tipe", u["t"]), ("Prosesor", u["p"]), ("RAM", u["r"]), ("Penyimpanan", u["d"]), ("Layar", u["l"]), ("VGA", u["v"])) if v)
+    if st == "Ready":
+        chip = "<span class=\"chip ok\">✅ Tersedia</span>"
+        harga = ("<div class=\"price\">%s%s</div>" % (("<span class=\"old\">%s</span>" % rp(u["h"])) if u["k"] and u["h"] > u["a"] else "", rp(u["a"] or u["h"]))) if (u["a"] or u["h"]) else ""
+        aksi = harga + "<a class=\"btn\" href=\"%s\">💬 Tanya / pesan unit ini via WhatsApp</a>" % e(wa("Halo %s, saya tertarik dengan unit %s (%s). Apakah masih tersedia?" % (TOKO, u["i"], nama(u))))
+        lain, judul = mirip(units, u, 4), "Pilihan lain yang mirip"
+    elif st in ("Booking", "DP"):
+        chip = "<span class=\"chip bk\">🕓 Sudah dipesan</span>"
+        aksi = ("<div class=\"note\">Unit ini sedang dipesan pembeli lain. Kalau pesanan batal, kami bisa kabari Anda.</div>"
+                "<a class=\"btn\" href=\"%s\">💬 Kabari saya jika unit ini batal dipesan</a>" % e(wa("Halo %s, tolong kabari saya jika unit %s (%s) batal dipesan. Terima kasih." % (TOKO, u["i"], nama(u)))))
+        lain, judul = mirip(units, u, 6), "Unit serupa yang masih tersedia"
+    else:
+        chip = "<span class=\"chip sd\">❌ Sudah terjual</span>"
+        aksi = ("<div class=\"note red\">Maaf, unit ini <b>sudah terjual</b>. Lihat laptop serupa yang masih tersedia di bawah, atau tanyakan stok terbaru ke kami.</div>"
+                "<a class=\"btn\" href=\"%s\">💬 Cari unit serupa via WhatsApp</a>" % e(wa("Halo %s, unit %s (%s) sudah terjual. Ada unit serupa yang masih tersedia?" % (TOKO, u["i"], nama(u)))))
+        lain, judul = mirip(units, u, 6), "Unit serupa yang masih tersedia"
+    body = ("<div class=\"card two\">%s<div class=\"pad\">%s<h1>%s</h1><div class=\"id\">Kode unit: %s</div><table>%s</table>%s</div></div>"
+            % (img(u), chip, e(nama(u)), e(u["i"]), spek, aksi))
+    if lain: body += "<h2>%s</h2><div class=\"grid\">%s</div>" % (judul, "".join(mini(x) for x in lain))
+    body += kat + upd
+    return shell(nama(u) + " · " + TOKO, body)
+
+def page_katalog(pub):
+    ready = sorted([x for x in pub["units"] if x["s"] == "Ready" and (x["a"] or x["h"])], key=lambda x: (x["m"].lower(), x["a"] or x["h"]))
+    merek = sorted({x["m"] for x in ready if x["m"]}, key=str.lower)
+    data = json.dumps([[x["i"], (nama(x) + " " + x["p"] + " " + x["r"] + " " + x["d"]).lower(), x["m"], x["a"] or x["h"]] for x in ready], ensure_ascii=False).replace("</", "<\\/")
+    body = ("<h1>Laptop tersedia (<span id=\"n\">%d</span>)</h1><p class=\"id\">Semua unit di halaman ini masih tersedia. Unit yang sudah dipesan atau terjual otomatis hilang.</p>"
+            "<div class=\"bar\"><input id=\"q\" placeholder=\"Cari merek, tipe, prosesor…\"><select id=\"mk\"><option value=\"\">Semua merek</option>%s</select>"
+            "<select id=\"so\"><option value=\"\">Urutkan: merek</option><option value=\"1\">Harga termurah</option><option value=\"2\">Harga termahal</option></select></div>"
+            "<div class=\"grid\" id=\"g\">%s</div><div class=\"foot\">Data stok diperbarui %s</div>"
+            "<script>(function(){var D=%s,g=document.getElementById('g'),q=document.getElementById('q'),mk=document.getElementById('mk'),so=document.getElementById('so'),n=document.getElementById('n');"
+            "var el={};[].forEach.call(g.children,function(c,i){el[D[i][0]]=c});"
+            "function f(){var t=q.value.toLowerCase().trim().split(/\\s+/),m=mk.value,o=so.value,L=D.filter(function(d){return(!m||d[2]===m)&&t.every(function(w){return d[1].indexOf(w)>=0})});"
+            "if(o)L=L.slice().sort(function(a,b){return o==='1'?a[3]-b[3]:b[3]-a[3]});[].forEach.call(g.children,function(c){c.style.display='none'});"
+            "L.forEach(function(d){var c=el[d[0]];c.style.display='';g.appendChild(c)});n.textContent=L.length}q.oninput=f;mk.onchange=f;so.onchange=f})();</script>"
+            % (len(ready), "".join("<option>%s</option>" % e(m) for m in merek), "".join(mini(x) for x in ready) or "<p>Belum ada data stok.</p>", e(tgl(pub.get("ts"))), data))
+    return shell("Katalog laptop · " + TOKO, body)
+
 class H(BaseHTTPRequestHandler):
     server_version = "niscaya-teknisi"
     def log_message(self, *a): pass
@@ -100,9 +236,27 @@ class H(BaseHTTPRequestHandler):
         self.send_header("Content-Length", str(len(b)))
         self.end_headers(); self.wfile.write(b)
 
-    def body(self):
+    def html(self, code, text):
+        b = text.encode("utf-8")
+        self.send_response(code)
+        self.send_header("Content-Type", "text/html; charset=utf-8")
+        self.send_header("Cache-Control", "no-store")
+        self.send_header("X-Content-Type-Options", "nosniff")
+        self.send_header("Referrer-Policy", "no-referrer")
+        self.send_header("Content-Length", str(len(b)))
+        self.end_headers(); self.wfile.write(b)
+
+    def owner_publik(self, b):
+        units = b.get("units")
+        if not isinstance(units, list) or len(units) > 5000: return self.send(400, {"error": "Data tidak valid"})
+        clean = [pub_clean(x) for x in units if isinstance(x, dict) and s(x.get("i"), 60)]
+        if not clean and units: return self.send(400, {"error": "Data tidak valid"})
+        pub_save(clean)
+        return self.send(200, {"ok": True, "jumlah": len(clean)})
+
+    def body(self, limit=200000):
         n = int(self.headers.get("Content-Length") or 0)
-        if n > 200000: return None
+        if n > limit: return None
         if "application/json" not in (self.headers.get("Content-Type") or ""): return None
         try: return json.loads(self.rfile.read(n) or b"{}")
         except Exception: return None
@@ -166,6 +320,13 @@ class H(BaseHTTPRequestHandler):
             self.send_header("X-Content-Type-Options", "nosniff")
             self.send_header("Content-Length", str(len(lg["data"])))
             self.end_headers(); self.wfile.write(lg["data"]); return
+        if p == "/tapi/katalog" or p == "/tapi/katalog/":
+            return self.html(200, page_katalog(pub_load()))
+        m = re.match(r"^/tapi/u/([A-Za-z0-9._%-]{1,60})/?$", p)
+        if m:
+            uid = urllib.parse.unquote(m.group(1))
+            pub = pub_load(); u = next((x for x in pub["units"] if x["i"].lower() == uid.lower()), None)
+            return self.html(200 if u else 404, page_unit(pub, u, uid))
         if p == "/tapi/version":
             with LOCK: d = load()
             return self.send(200, {"version": d["version"]})
@@ -174,7 +335,7 @@ class H(BaseHTTPRequestHandler):
     # ---------------- POST ----------------
     def do_POST(self):
         p = self.path.split("?", 1)[0]
-        b = self.body()
+        b = self.body(900000 if p == "/tapi/owner/publik" else 200000)
         if b is None: return self.send(400, {"error": "Permintaan tidak valid"})
         if p == "/tapi/login": return self.login(b)
         if p == "/tapi/logout":
@@ -188,6 +349,7 @@ class H(BaseHTTPRequestHandler):
             if p == "/tapi/owner/job": return self.owner_job(b)
             if p == "/tapi/owner/job-delete": return self.owner_delete(b)
             if p == "/tapi/owner/account": return self.owner_account(b)
+            if p == "/tapi/owner/publik": return self.owner_publik(b)
         return self.send(404, {"error": "tidak ditemukan"})
 
     def login(self, b):
