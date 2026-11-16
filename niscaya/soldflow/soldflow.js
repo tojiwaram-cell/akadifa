@@ -1,4 +1,4 @@
-/*SOLDFLOW v2*/
+/*SOLDFLOW v3*/
 /* Rilis 0023 — alur unit terjual:
    - QR label berisi tautan /tapi/u/<ID> (status & harga selalu terbaru); label lama (teks) tetap terbaca
    - Scan unit Sold/Booking/DP memunculkan peringatan besar
@@ -147,16 +147,15 @@
     };
   }
 
-  /* ---- Katalog WA: tanggal stok + link katalog online ---- */
+  /* ---- Katalog WA: tanggal stok (baris link katalog online dihapus sejak 0028) ---- */
   document.addEventListener('click', function(e){
     if(!e.target.closest || !e.target.closest('#genCatalog')) return;
     setTimeout(function(){
       var o = document.getElementById('waOutput'); if(!o || !o.value.trim()) return;
       var t = new Date(), bln = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
       var L1 = '🗓 Stok & harga per ' + t.getDate() + ' ' + bln[t.getMonth()] + ' ' + t.getFullYear() + ', ' + String(t.getHours()).padStart(2, '0') + '.' + String(t.getMinutes()).padStart(2, '0') + ' — bisa berubah sewaktu-waktu.';
-      var L2 = '🔎 Cek unit yang masih tersedia: ' + ORIGIN + '/tapi/katalog';
       var v = o.value.replace(/\n*🗓 Stok & harga per[^\n]*/g, '').replace(/\n*🔎 Cek unit yang masih tersedia:[^\n]*/g, '');
-      o.value = v.trimEnd() + '\n\n' + L1 + '\n' + L2;
+      o.value = v.trimEnd() + '\n\n' + L1;
       try{ o.dispatchEvent(new Event('input', {bubbles:true})); }catch(_){}
     }, 160);
   }, true);
