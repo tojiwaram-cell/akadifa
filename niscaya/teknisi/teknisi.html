@@ -24,6 +24,20 @@ textarea{min-height:70px;resize:vertical}
 .err{color:#c9372c;font-size:13px;margin-top:10px;min-height:18px}
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
 .stat{background:#fff;border-radius:14px;padding:11px 12px}.stat b{display:block;font-size:19px}.stat span{font-size:11.5px;color:#5b6475}
+button.stat{border:2px solid transparent;text-align:left;cursor:pointer;color:inherit;font:inherit;transition:border-color .15s,transform .15s,box-shadow .15s}
+button.stat:hover{border-color:#c9d3e6;transform:translateY(-1px);box-shadow:0 8px 18px -14px rgba(20,45,95,.5)}
+button.stat.on{border-color:#14161f}
+button.stat:focus-visible,.tab:focus-visible,.mnav button:focus-visible{outline:3px solid #1a5fd6;outline-offset:2px}
+.stat em{display:block;font-style:normal;font-size:10.5px;color:#1a5fd6;font-weight:700;margin-top:3px}
+.mnav{display:flex;align-items:center;justify-content:space-between;gap:8px;background:#fff;border-radius:999px;padding:5px;margin-bottom:12px}
+.mnav b{font-size:14px}.mnav button{border:0;background:#eef1f6;border-radius:999px;width:36px;height:36px;font-size:18px;font-weight:800;cursor:pointer}
+.mnav button:disabled{opacity:.35;cursor:default}
+.upah{width:100%;border-collapse:collapse;font-size:13px}
+.upah th{text-align:left;font-size:11.5px;color:#5b6475;font-weight:700;padding:6px 6px;border-bottom:1.5px solid #e3e8f1}
+.upah td{padding:9px 6px;border-bottom:1px solid #eef1f6;vertical-align:top}
+.upah td.n,.upah th.n{text-align:right;white-space:nowrap}
+.upah tbody tr{cursor:pointer}.upah tbody tr:hover{background:#f4f6fb}
+.upah tfoot td{font-weight:800;border:0;padding-top:11px}
 .tabs{display:flex;gap:6px;overflow:auto;margin-bottom:12px}
 .tab{border:0;background:#fff;border-radius:999px;padding:8px 14px;font-weight:700;font-size:13px;white-space:nowrap;cursor:pointer}
 .tab.on{background:#14161f;color:#fff}
@@ -228,7 +242,8 @@ const $ = s => document.querySelector(s);
 const esc = v => (v===undefined||v===null)?'':String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const rp = n => 'Rp ' + (Number(n)||0).toLocaleString('id-ID');
 const tgl = t => t ? new Date(t*1000).toLocaleString('id-ID',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : '-';
-let ME = null, JOBS = [], TAB = 'aktif', VER = 0, OPEN = new Set();
+let ME = null, JOBS = [], TAB = 'aktif', VER = 0, OPEN = new Set(), MON = 0, FOKUS = null;
+function bulan(off){ const n = new Date(); const a = new Date(n.getFullYear(), n.getMonth()+off, 1), z = new Date(n.getFullYear(), n.getMonth()+off+1, 1); return {awal:a.getTime()/1000, akhir:z.getTime()/1000, label:a.toLocaleString('id-ID',{month:'long',year:'numeric'})}; }
 function toast(m){ const t=$('#toast'); t.textContent=m; t.classList.add('on'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('on'),2600); }
 async function api(path, body){
   const o = body===undefined ? {cache:'no-store',credentials:'same-origin'} : {method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)};
@@ -265,22 +280,44 @@ function renderLogin(msg){
 async function loadJobs(){ const j = await api('/tapi/jobs'); JOBS = j.jobs; VER = j.version; render(); }
 
 function render(){
-  const bln = new Date(); const awal = new Date(bln.getFullYear(), bln.getMonth(), 1).getTime()/1000;
+  const B = bulan(MON);
   const aktif = JOBS.filter(j=>j.status==='Antri'||j.status==='Dikerjakan');
-  const selesaiBln = JOBS.filter(j=>j.status==='Selesai' && (j.selesai||0)>=awal);
+  const selesaiBln = JOBS.filter(j=>j.status==='Selesai' && (j.selesai||0)>=B.awal && (j.selesai||0)<B.akhir);
   const upahBln = selesaiBln.reduce((a,j)=>a+(Number(j.upah)||0),0);
-  const list = (TAB==='aktif' ? aktif : JOBS.filter(j=>j.status!=='Antri'&&j.status!=='Dikerjakan')).slice().sort((a,b)=>(b.diubah||b.dibuat||0)-(a.diubah||a.dibuat||0));
+  const urut = (a,b)=>(b.diubah||b.dibuat||0)-(a.diubah||a.dibuat||0);
+  const ketBln = MON===0 ? 'bulan ini' : B.label;
+  let list = [], isi = '';
+  if(TAB==='aktif') list = aktif.slice().sort(urut);
+  else if(TAB==='riwayat') list = JOBS.filter(j=>j.status!=='Antri'&&j.status!=='Dikerjakan').sort(urut);
+  else if(TAB==='bulan') list = selesaiBln.slice().sort((a,b)=>(b.selesai||0)-(a.selesai||0));
+  const nav = (TAB==='bulan'||TAB==='upah') ? `<div class="mnav"><button type="button" id="mPrev" aria-label="Bulan sebelumnya">‹</button><b>${TAB==='upah'?'Upah':'Selesai'} · ${esc(B.label)}</b><button type="button" id="mNext" aria-label="Bulan berikutnya" ${MON>=0?'disabled':''}>›</button></div>` : '';
+  if(TAB==='upah'){
+    const rows = selesaiBln.slice().sort((a,b)=>(a.selesai||0)-(b.selesai||0));
+    isi = rows.length ? `<div class="card"><table class="upah"><thead><tr><th>Selesai</th><th>Unit / pekerjaan</th><th class="n">Durasi</th><th class="n">Upah</th></tr></thead><tbody>
+      ${rows.map(j=>{ const u=j.unit||{}; return `<tr data-lihat="${esc(j.id)}" tabindex="0" title="Lihat detail pekerjaan"><td>${tgl(j.selesai)}</td><td><b>${esc(u.merek||'')} ${esc(u.tipe||'')}</b><br><span class="dim">${esc(j.jenis||'-')} · ${esc(j.id)}</span></td><td class="n">${fmtJam(jam(j))}</td><td class="n">${rp(j.upah)}</td></tr>`; }).join('')}
+      </tbody><tfoot><tr><td colspan="3">Total ${rows.length} pekerjaan</td><td class="n">${rp(upahBln)}</td></tr></tfoot></table>
+      <div class="dim" style="font-size:12px;margin-top:8px">Upah dihitung dari pekerjaan berstatus Selesai pada bulan ini. Ketuk baris untuk melihat detailnya.</div></div>`
+      : `<div class="card empty">Belum ada upah pada ${esc(B.label)}.</div>`;
+  } else {
+    const kosong = TAB==='aktif' ? 'Belum ada pekerjaan. Tugas baru dari owner akan muncul di sini otomatis.' : TAB==='bulan' ? 'Belum ada pekerjaan selesai pada '+esc(B.label)+'.' : 'Belum ada riwayat.';
+    isi = list.map(jobHtml).join('') || `<div class="card empty">${kosong}</div>`;
+  }
   $('#app').innerHTML = `
     <div class="top"><div class="brand">NISCAYA <i>MAKASSAR</i><div class="dim" style="font-weight:600">${esc(ME.roleLabel||'Teknisi')}</div></div>
       <div class="who"><b>${esc(ME.label)}</b><br><button class="btn sm" id="out" style="margin-top:4px">Keluar</button></div></div>
-    <div class="stats"><div class="stat"><b>${aktif.length}</b><span>pekerjaan aktif</span></div>
-      <div class="stat"><b>${selesaiBln.length}</b><span>selesai bulan ini</span></div>
-      <div class="stat"><b style="font-size:15px">${rp(upahBln)}</b><span>upah bulan ini</span></div></div>
+    <div class="stats"><button type="button" class="stat ${TAB==='aktif'?'on':''}" data-tab="aktif"><b>${aktif.length}</b><span>pekerjaan aktif</span><em>Lihat daftar ›</em></button>
+      <button type="button" class="stat ${TAB==='bulan'?'on':''}" data-tab="bulan"><b>${selesaiBln.length}</b><span>selesai ${esc(ketBln)}</span><em>Lihat pekerjaan ›</em></button>
+      <button type="button" class="stat ${TAB==='upah'?'on':''}" data-tab="upah"><b style="font-size:15px">${rp(upahBln)}</b><span>upah ${esc(ketBln)}</span><em>Lihat rincian ›</em></button></div>
     <div class="tabs"><button class="tab ${TAB==='aktif'?'on':''}" data-tab="aktif">Aktif (${aktif.length})</button><button class="tab ${TAB==='riwayat'?'on':''}" data-tab="riwayat">Riwayat (${JOBS.length-aktif.length})</button></div>
-    ${list.map(jobHtml).join('') || `<div class="card empty">${TAB==='aktif'?'Belum ada pekerjaan. Tugas baru dari owner akan muncul di sini otomatis.':'Belum ada riwayat.'}</div>`}`;
-  $('#out').onclick = async () => { try{ await api('/tapi/logout',{}); }catch(_){} ME=null; renderLogin(); };
-  document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{TAB=b.dataset.tab; render();});
+    ${nav}${isi}`;
+  $('#out').onclick = async () => { if(!confirm('Keluar dari akun teknisi?')) return; try{ await api('/tapi/logout',{}); }catch(_){} ME=null; TAB='aktif'; MON=0; renderLogin(); };
+  document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{ const t=b.dataset.tab; if(t==='aktif'||t==='riwayat') MON=0; TAB=t; render(); window.scrollTo({top:0,behavior:'smooth'}); });
+  const mp=$('#mPrev'), mn=$('#mNext');
+  if(mp) mp.onclick=()=>{ MON--; render(); };
+  if(mn) mn.onclick=()=>{ if(MON<0){ MON++; render(); } };
+  document.querySelectorAll('[data-lihat]').forEach(r=>{ const go=()=>{ FOKUS=r.dataset.lihat; OPEN.add(FOKUS); TAB='bulan'; render(); }; r.onclick=go; r.onkeydown=e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); go(); } }; });
   JOBS.forEach(wireJob);
+  if(FOKUS){ const el=document.getElementById('j-'+FOKUS); FOKUS=null; if(el){ el.scrollIntoView({behavior:'smooth',block:'start'}); el.style.boxShadow='0 0 0 3px #1a5fd6'; setTimeout(()=>el.style.boxShadow='',1800); } }
 }
 function jobHtml(j){
   const u = j.unit||{}; const h = jam(j); const telat = h!==null && j.targetJam && h > j.targetJam;
