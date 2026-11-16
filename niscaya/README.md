@@ -26,3 +26,7 @@ Sumber tampilan di `niscaya/login/parts.py`. Login owner: `python3 niscaya/login
 Sumber di `niscaya/login-v3/` (login.css, logout.css, art.svg). Patch `0019-login-ungu.py` dipasang SETELAH `0017-login-contractbook.py`
 dan mengganti tampilannya dengan gaya ungu (referensi Pinterest): kartu putih + ilustrasi, kotak masuk ungu, tombol kuning, tab Owner/Teknisi tetap.
 Setelah mengubah sumbernya jalankan `python3 niscaya/login-v3/build_patch.py`.
+
+## Kembali ke login biru + laptop 3D (rilis 0020)
+Atas permintaan owner, gaya ungu-kuning (0019) dinonaktifkan: `0019-login-ungu.py` dikeluarkan dari `patches.txt`, dan
+`0020-batal-ungu.py` (dijalankan sebelum 0017) membalik edit 0019 di file yang sudah terpasang. Sumber `login-v3/` dibiarkan sebagai arsip.
