@@ -21,3 +21,8 @@ Owner dikenali lewat sesi master (`/api/me`).
 Sumber tampilan di `niscaya/login/parts.py`. Login owner: `python3 niscaya/login/build_patch.py` → `patches/0017-login-contractbook.py`
 (dipasang setelah 0001, mengganti tampilan Campty; logika login tidak diubah). Login teknisi memakai CSS yang sama di
 `teknisi/teknisi.html` (blok `/*CB-LOGIN*/`) — lalu jalankan `teknisi/build_patch.py`.
+
+## Login ungu-kuning (rilis 0019)
+Sumber di `niscaya/login-v3/` (login.css, logout.css, art.svg). Patch `0019-login-ungu.py` dipasang SETELAH `0017-login-contractbook.py`
+dan mengganti tampilannya dengan gaya ungu (referensi Pinterest): kartu putih + ilustrasi, kotak masuk ungu, tombol kuning, tab Owner/Teknisi tetap.
+Setelah mengubah sumbernya jalankan `python3 niscaya/login-v3/build_patch.py`.

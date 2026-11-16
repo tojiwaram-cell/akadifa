@@ -1,0 +1,53 @@
+
+/* ===== Login v3: gaya "flat purple" (referensi Pinterest) ===== */
+#loginOverlay{background:linear-gradient(135deg,#6236d6 0%,#7c4ddb 55%,#9a6cf0 100%);font-family:'Plus Jakarta Sans','Poppins',system-ui,-apple-system,'Segoe UI',sans-serif;color:#1f1840}
+#loginOverlay:before{content:"";position:fixed;inset:0;pointer-events:none;background:radial-gradient(circle at 12% 18%,rgba(255,255,255,.10) 0 160px,transparent 161px),radial-gradient(circle at 92% 88%,rgba(255,255,255,.08) 0 220px,transparent 221px)}
+#loginOverlay{display:block}
+.pv-wrap{position:relative;min-height:100%;display:flex;align-items:center;justify-content:center;padding:36px 24px}
+.pv-card{position:relative;width:100%;max-width:1080px;min-height:560px;background:#fff;border-radius:18px;box-shadow:0 40px 90px -30px rgba(30,10,80,.55);display:grid;grid-template-columns:1fr minmax(320px,370px);gap:36px;align-items:center;padding:78px 56px 56px;overflow:hidden}
+.pv-card:before{content:"";position:absolute;right:-120px;top:-140px;width:520px;height:520px;border-radius:50%;background:#f4f2fb}
+.pv-card:after{content:"";position:absolute;left:-90px;bottom:-160px;width:420px;height:320px;border-radius:50%;background:#f7f6fb}
+.pv-brand{position:absolute;left:56px;top:28px;z-index:2;display:flex;align-items:center;gap:10px;font-weight:800;font-size:17px;letter-spacing:-.2px;color:#1f1840}
+.pv-brand img{width:34px;height:34px;border-radius:9px;object-fit:cover}
+.pv-brand i{font-style:normal;color:#7c4ddb}
+.pv-art{position:relative;z-index:1}
+.pv-art svg{display:block;width:100%;height:auto;max-width:600px;margin:0 auto}
+.pv-side{position:relative;z-index:1}
+.pv-login{background:linear-gradient(160deg,#7f50e0 0%,#6a3dd6 100%);border-radius:14px;padding:34px 30px 30px;box-shadow:0 26px 50px -22px rgba(80,40,170,.75);color:#fff}
+.pv-foot{text-align:right;font-size:12px;color:#8a86a3;margin-top:16px}
+.pv-foot b{color:#1f1840}
+.pv-seg{display:grid;grid-template-columns:1fr 1fr;border:1.5px solid rgba(255,255,255,.55);border-radius:8px;overflow:hidden;margin:0 0 22px}
+.pv-seg>*{border:0;background:transparent;color:#fff;font-family:inherit;font-weight:700;font-size:13px;line-height:1;padding:10px;cursor:pointer;text-align:center;text-decoration:none}
+.pv-seg>.on{background:#fff;color:#6a3dd6}
+.pv-seg>:not(.on):hover{background:rgba(255,255,255,.12)}
+.pv-login .lg-title{color:#fff;font-size:24px;font-weight:700;text-align:center;margin:0 0 4px;letter-spacing:-.2px}
+.pv-login .lg-sub{color:rgba(255,255,255,.72);font-size:12.5px;text-align:center;margin:0 0 22px}
+.pv-login .lg-field{margin-bottom:14px}
+.pv-login .lg-field label{color:rgba(255,255,255,.88);font-size:12px;font-weight:600}
+.pv-login .lg-field input{height:44px;border:0;border-radius:7px;background:#fff;color:#1f1840;font-size:14px;padding:0 44px 0 16px;box-shadow:0 6px 14px -8px rgba(20,0,60,.45)}
+.pv-login .lg-field input::placeholder{color:#a19cbb}
+.pv-login .lg-field input:focus{background:#fff;border:0;box-shadow:0 0 0 3px rgba(255,199,39,.75)}
+.pv-login .pv-f input{padding-left:42px}
+.pv-i{position:absolute;left:14px;bottom:13px;width:18px;height:18px;color:#ffb800;pointer-events:none;display:flex}
+.pv-i svg{width:18px;height:18px}
+.pv-login .lg-eye{bottom:10px;color:#9a93bd}.pv-login .lg-eye:hover{color:#6a3dd6}
+.pv-opts{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:2px 0 8px}
+.pv-login .lg-check{color:rgba(255,255,255,.88);font-size:12px;gap:8px}
+.pv-login .lg-check input{width:15px;height:15px;accent-color:#ffc727}
+.pv-login .lg-link{color:rgba(255,255,255,.88);font-size:12px;font-weight:600}
+.pv-login .lg-link:hover{color:#fff}
+.pv-login .lg-msg{color:#ffd9d9;font-size:12.5px;min-height:18px;margin:4px 0 8px}
+.pv-login .lg-msg.ok{color:#d4ffe6}
+.pv-login .lg-btn{height:44px;border-radius:7px;background:#ffc727;color:#2b1a63;font-weight:800;font-size:14px;letter-spacing:1.4px;text-transform:uppercase;box-shadow:0 12px 22px -12px rgba(255,180,0,.9);margin-top:6px}
+.pv-login .lg-btn:hover{background:#ffd34f;transform:translateY(-1px)}
+.pv-login .lg-note{background:rgba(255,255,255,.14);color:#fff;border-radius:9px}
+.pv-login .lg-hr{border-top-color:rgba(255,255,255,.25)}
+.pv-login .lg-row{margin-top:14px}
+@media(max-width:900px){
+  .pv-wrap{padding:18px 14px;align-items:flex-start}
+  .pv-card{grid-template-columns:1fr;gap:10px;padding:70px 20px 24px;min-height:0;border-radius:16px}
+  .pv-brand{left:20px;top:22px;font-size:15px}.pv-brand img{width:30px;height:30px}
+  .pv-art svg{max-width:340px}
+  .pv-login{padding:28px 22px 24px}
+  .pv-foot{text-align:center}
+}
