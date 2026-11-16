@@ -65,3 +65,9 @@ Sumber: `login-v4/nm.py` (blok `.nm-hero`/`.nm-logo`) dan `teknisi/server.py` (`
 Pemantau v2 memakai API GitHub tanpa token (batas 60 permintaan/jam per IP, respons 304 tetap dihitung) sehingga kuota habis
 ±5 menit dan update baru terpasang lewat cron cadangan 10 menit. v3 membaca `https://github.com/<repo>.git/info/refs` (git smart-HTTP,
 tanpa kuota API, tanpa cache CDN). Status cek terakhir: `/var/lib/niscaya-deploy/watch.status`.
+
+## Dashboard teknisi gaya Pivora (rilis 0027)
+Referensi: Pinterest pin 1130825787720003740 (dashboard ungu-pink: rel menu ungu, kartu Overview bergrafik, kartu ungu & pink,
+kartu tugas berikon dengan progress bar, panel kanan aktivitas). Semua di `teknisi/teknisi.html` (CSS `/*DSH v1*/`, JS `render`/`fillList`/`tileHtml`).
+Grafik = jumlah selesai (pink) & upah (putih) per bulan; pil bulan & ‹ › memilih bulan; kartu tugas membuka jendela detail (laporan, part, foto, status).
+Setelah mengubah: `python3 niscaya/teknisi/build_patch.py`.
