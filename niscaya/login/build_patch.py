@@ -14,7 +14,7 @@ OLD_TAIL_END = """        <div class="cp-stat"><b>24/7</b><span>Sinkron otomatis
       </section>
     </div>`;"""
 NEW_MARKUP = ("""    <div class="cb-page">
-      """ + parts.art("24", "unit ready<br>hari ini") + """
+      """ + parts.art() + """
       <section class="cb-side">
         <div class="cb-brand">${logo ? `<img src="${logo}" alt="">` : '<span class="lg"></span>'}<span>NISCAYA <span>MAKASSAR</span></span></div>
         <h1 class="cb-h1">Masuk</h1>
@@ -29,8 +29,8 @@ for s in (parts.CSS, parts.LG_CSS, parts.LOGOUT_CSS, NEW_MARKUP[:-2].replace("${
     assert "${" not in s.replace("${logo", "") and "`" not in s.replace("`<img src=", "").replace('alt="">`', "") and "\\" not in s, "karakter terlarang di template literal"
 CSS_MARK = "@media(max-width:420px){.cp-pills .cp-pill:last-child{display:none}}\n`;"
 LO_MARK = "@keyframes loFade{from{opacity:0}to{opacity:1}}\n`;"
-CFG = dict(OLD_MARKUP=OLD_MARKUP, OLD_TAIL_START=OLD_TAIL_START, OLD_TAIL_END=OLD_TAIL_END, NEW_MARKUP=NEW_MARKUP,
-           CSS_MARK=CSS_MARK, CSS_NEW=CSS_MARK[:-3] + "\n/*CB-LOGIN v1*/" + parts.CSS + parts.LG_CSS + "`;",
+CFG = dict(ART=parts.art(), CSS2="/*CB-LOGIN v2*/" + parts.CSS + parts.LG_CSS,OLD_MARKUP=OLD_MARKUP, OLD_TAIL_START=OLD_TAIL_START, OLD_TAIL_END=OLD_TAIL_END, NEW_MARKUP=NEW_MARKUP,
+           CSS_MARK=CSS_MARK, CSS_NEW=CSS_MARK[:-3] + "\n/*CB-LOGIN v2*/" + parts.CSS + parts.LG_CSS + "`;",
            LO_MARK=LO_MARK, LO_NEW=LO_MARK[:-3] + parts.LOGOUT_CSS + "`;")
 tpl = r'''#!/usr/bin/env python3
 # NISCAYA MAKASSAR patch 0017: tampilan login & dialog keluar gaya "Contractbook" (split ilustrasi laptop + form).
@@ -38,9 +38,19 @@ tpl = r'''#!/usr/bin/env python3
 import sys, json
 C = json.loads(__CFG__)
 path = sys.argv[1]; src = open(path, encoding="utf-8").read()
-if "/*CB-LOGIN v1*/" in src: sys.exit(0)
+if "/*CB-LOGIN v2*/" in src: sys.exit(0)
 crlf = "\r\n" in src
 if crlf: src = src.replace("\r\n", "\n")
+if "/*CB-LOGIN v1*/" in src:
+    # tingkatkan dari v1: ganti ilustrasi dan blok CSS saja
+    a = src.find('<section class="cb-art"'); z = src.find('<section class="cb-side">', a)
+    c = src.find("/*CB-LOGIN v1*/"); d = src.find("`;", c)
+    if a < 0 or z < 0 or d < 0: print("0017: blok v1 tidak utuh - dilewati"); sys.exit(0)
+    src = src[:a] + C["ART"] + "\n      " + src[z:]
+    c = src.find("/*CB-LOGIN v1*/"); d = src.find("`;", c)
+    src = src[:c] + C["CSS2"] + src[d:]
+    if crlf: src = src.replace("\n", "\r\n")
+    open(path, "w", encoding="utf-8").write(src); print("0017: ilustrasi laptop 3D terpasang"); sys.exit(0)
 a = src.find(C["OLD_MARKUP"])
 if a < 0 or src.count(C["OLD_MARKUP"]) != 1 or src.count(C["CSS_MARK"]) != 1 or src.count(C["LO_MARK"]) != 1:
     print("0017: penanda tidak cocok - dilewati"); sys.exit(0)
