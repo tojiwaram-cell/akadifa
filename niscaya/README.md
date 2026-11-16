@@ -60,3 +60,8 @@ Sumber: `login-v4/nm.py` (blok `.nm-hero`/`.nm-logo`) dan `teknisi/server.py` (`
 - Untung minus tampil merah di Penjualan & Marketing; unit tanpa harga tampil "Tanya harga" (Kanban, Katalog WA, Label).
 - Lencana sinkron kembali ke "Tersimpan di VPS" begitu koneksi pulih.
 - Sumber: `fix0024/edits.py` + `fix0024/fix0024.js` → `python3 niscaya/fix0024/build_patch.py` → `patches/0024-perbaikan-bug.py`.
+
+## Pemantau 5 detik v3 (rilis 0025)
+Pemantau v2 memakai API GitHub tanpa token (batas 60 permintaan/jam per IP, respons 304 tetap dihitung) sehingga kuota habis
+±5 menit dan update baru terpasang lewat cron cadangan 10 menit. v3 membaca `https://github.com/<repo>.git/info/refs` (git smart-HTTP,
+tanpa kuota API, tanpa cache CDN). Status cek terakhir: `/var/lib/niscaya-deploy/watch.status`.

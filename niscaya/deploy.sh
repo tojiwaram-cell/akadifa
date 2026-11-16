@@ -48,21 +48,23 @@ ls -1t "$STATE"/backup/* 2>/dev/null | tail -n +21 | xargs -r rm -f
 W=/usr/local/bin/niscaya-watch; tw=$(mktemp)
 cat > "$tw" <<'EOW'
 #!/bin/bash
-# NISCAYA watcher 5 detik v2 — cek commit terbaru via API GitHub (ETag/304, tanpa cache CDN), dipanggil cron tiap menit
+# NISCAYA watcher 5 detik v3 — cek commit terbaru lewat git smart-HTTP (info/refs), dipanggil cron tiap menit.
+# v2 memakai API GitHub tanpa token: batasnya 60 permintaan/jam per IP (respons 304 tetap dihitung), jadi habis dalam
+# ±5 menit dan pemantau buta sisa jamnya. info/refs tidak memakai kuota API dan tidak tertahan cache CDN.
 exec 9>/var/lock/niscaya-watch.lock; flock -n 9 || exit 0
-REPO="tojiwaram-cell/akadifa"; API="${NISCAYA_API:-https://api.github.com/repos/$REPO/commits/main}"
+REPO="tojiwaram-cell/akadifa"; REFS="${NISCAYA_REFS:-https://github.com/$REPO.git/info/refs?service=git-upload-pack}"
 S=/var/lib/niscaya-deploy; mkdir -p "$S"; LOG=/var/log/niscaya-deploy.log
 end=$(( $(date +%s) + 58 ))
 while [ "$(date +%s)" -lt "$end" ]; do
-  et=$(cat "$S/etag" 2>/dev/null)
-  code=$(curl -sS -m 4 -o "$S/sha.tmp" -D "$S/hdr.tmp" -w '%{http_code}' -H "Accept: application/vnd.github.sha" -H "User-Agent: niscaya-watch" ${et:+-H "If-None-Match: $et"} "$API" 2>/dev/null)
-  if [ "$code" = "200" ]; then
-    sha=$(tr -dc '0-9a-f' < "$S/sha.tmp" | head -c 40)
-    grep -i '^etag:' "$S/hdr.tmp" | cut -d' ' -f2- | tr -d '\r' > "$S/etag"
-    if [ ${#sha} -eq 40 ] && [ "$sha" != "$(cat "$S/sha.seen" 2>/dev/null)" ]; then
+  sha=$(curl -fsS -m 4 -H "User-Agent: niscaya-watch" "$REFS" 2>/dev/null | grep -ao '[0-9a-f]\{40\} refs/heads/main' | head -1 | cut -c1-40)
+  if [ ${#sha} -eq 40 ]; then
+    echo "$(date '+%F %T') ok ${sha:0:7}" > "$S/watch.status"
+    if [ "$sha" != "$(cat "$S/sha.seen" 2>/dev/null)" ]; then
       echo "$(date '+%F %T') commit baru ${sha:0:7} terdeteksi" >> "$LOG"
       if NISCAYA_BASE="${NISCAYA_RAW:-https://raw.githubusercontent.com/$REPO}/$sha/niscaya" flock -w 50 /var/lock/niscaya-deploy.lock "${NISCAYA_DEPLOY:-/usr/local/bin/niscaya-deploy}" >> "$LOG" 2>&1; then echo "$sha" > "$S/sha.seen"; fi
     fi
+  else
+    echo "$(date '+%F %T') gagal cek GitHub" > "$S/watch.status"
   fi
   sleep 5
 done
