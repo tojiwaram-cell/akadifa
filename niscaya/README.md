@@ -30,3 +30,9 @@ Setelah mengubah sumbernya jalankan `python3 niscaya/login-v3/build_patch.py`.
 ## Kembali ke login biru + laptop 3D (rilis 0020)
 Atas permintaan owner, gaya ungu-kuning (0019) dinonaktifkan: `0019-login-ungu.py` dikeluarkan dari `patches.txt`, dan
 `0020-batal-ungu.py` (dijalankan sebelum 0017) membalik edit 0019 di file yang sudah terpasang. Sumber `login-v3/` dibiarkan sebagai arsip.
+
+## Login ungu "Business Startup" + laptop 3D bergoyang (rilis 0021)
+Referensi: Magnific/Freepik premium-vector 3966284 (latar ungu berbintang, jejak awan menuju panel putih, form pil).
+Roket diganti laptop 3D CSS yang bergoyang (rotateX/Y/Z + engsel layar), ukuran membesar otomatis di Full HD/2K/4K.
+Sumber: `niscaya/login-v4/nm.py`. Jalankan `python3 niscaya/login-v4/build_patch.py` → membuat `patches/0021-login-ungu-3d.py`
+(login owner, dipasang SETELAH 0017) sekaligus memperbarui `teknisi/teknisi.html` dan `patches/0016-teknisi.py` (login teknisi).
