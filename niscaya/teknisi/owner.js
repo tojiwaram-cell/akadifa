@@ -1,4 +1,4 @@
-/*TEK-OWNER v5*/
+/*TEK-OWNER v6*/
 /* ================= TEKNISI (akun terpisah, data di layanan /tapi) ================= */
 const TEK = { state:null, filterTek:'Semua', filterSt:'Aktif', bulan:'', loading:false, err:'', ver:0 };
 const TEK_ST_COLOR = {Antri:'#8590a2', Dikerjakan:'#cf9f02', Selesai:'#1f845a', Gagal:'#c9372c'};
@@ -22,6 +22,12 @@ async function tekSyncBiaya(){
   TEK.state.jobs.filter(j => j.status==='Selesai' && !j.biayaMasuk).forEach(j => {
     const unit = DATA.stock.find(s => String(s.id) === String(j.unitId));
     if(!unit){ return; }
+    /* Unit sudah terjual: biaya TIDAK dimasukkan otomatis (laba penjualan yang sudah tercatat tidak boleh berubah diam-diam) */
+    if(unit.status === 'Sold' || (DATA.sales||[]).some(x => String(x.id) === String(unit.id))){
+      TEK.soldSkip = TEK.soldSkip || new Set();
+      if(!TEK.soldSkip.has(j.id)){ TEK.soldSkip.add(j.id); showToast(`Pekerjaan ${j.id} selesai, tapi unit ${unit.id} sudah terjual — biaya part/upah TIDAK dimasukkan ke unit agar laba penjualan tidak berubah. Catat manual bila memang perlu.`); }
+      return;
+    }
     const tag = '#' + j.id; unit.biaya = unit.biaya || [];
     if(!unit.biaya.some(b => String(b.keterangan||'').includes(tag))){
       const tglSelesai = j.selesai ? localYMD(new Date(j.selesai*1000)) : localYMD();
@@ -238,6 +244,12 @@ function openTekJobModal(jid){
     const s = DATA.stock.find(x => String(x.id) === $('tk_unit').value);
     if(!s){ alert('Pilih unit laptop'); return; }
     if(!$('tk_jenis').value.trim()){ alert('Isi jenis pekerjaan'); return; }
+    if(s.status === 'Sold' && !(j && String(j.unitId) === String(s.id))){ alert('Unit ' + s.id + ' sudah terjual — tidak bisa diberi pekerjaan baru'); return; }
+    { const up = Number($('tk_upah').value)||0, modal = Number(s.hargaModal)||0, batas = Math.max(500000, modal);
+      if(up > batas && !(j && up === (Number(j.upah)||0))){
+        const okU = await confirmChange('Upah lebih besar dari modal unit — cek angka nol, yakin?', [[`Upah teknisi · ${s.id} ${s.merek||''} ${s.tipe||''}`, 'modal ' + rupiah(modal), rupiah(up)]]);
+        if(!okU) return; } }
+    if(s.status === 'Sold') showToast('Catatan: unit ' + s.id + ' sudah terjual — biaya pekerjaan ini tidak akan masuk otomatis ke unit');
     const body = { teknisi:$('tk_tek').value, unitId:s.id, kategori:$('tk_kat').value, jenis:$('tk_jenis').value.trim(),
       targetJam:Number($('tk_target').value)||0, upah:Number($('tk_upah').value)||0, catatanOwner:$('tk_cat').value.trim(),
       unit:{id:s.id, merek:s.merek, tipe:s.tipe, processor:s.processor, ram:s.ram, ssd:s.ssd, vga:s.vga, layar:s.layar, noSeri:s.noSeri} };

@@ -52,3 +52,11 @@ Sumber: `login-v4/nm.py` (blok `.nm-hero`/`.nm-logo`) dan `teknisi/server.py` (`
   cetak label Sold minta konfirmasi. Kolom Sold di Kanban hanya bulan ini + tombol arsip. Data penjualan tidak pernah dihapus.
 - Sumber tampilan: `soldflow/soldflow.js` → `python3 niscaya/soldflow/build_patch.py` → `patches/0023-alur-terjual.py`.
   Setelah mengubah `teknisi/server.py` jalankan `python3 niscaya/teknisi/build_patch.py`.
+
+## Perbaikan bug (rilis 0024)
+- Biaya pekerjaan teknisi **tidak** lagi masuk otomatis ke unit yang sudah Sold (laba penjualan tidak berubah diam-diam);
+  unit Sold tidak bisa diberi pekerjaan baru; konfirmasi bila upah melebihi modal unit (cegah salah ketik angka nol). Sumber: `teknisi/owner.js` (TEK-OWNER v6).
+- Laba Dashboard & Penjualan = omzet − modal − biaya − **komisi marketing**; kolom tabel jadi "Modal+Biaya+Komisi".
+- Untung minus tampil merah di Penjualan & Marketing; unit tanpa harga tampil "Tanya harga" (Kanban, Katalog WA, Label).
+- Lencana sinkron kembali ke "Tersimpan di VPS" begitu koneksi pulih.
+- Sumber: `fix0024/edits.py` + `fix0024/fix0024.js` → `python3 niscaya/fix0024/build_patch.py` → `patches/0024-perbaikan-bug.py`.
