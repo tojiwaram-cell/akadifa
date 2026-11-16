@@ -44,20 +44,25 @@ for f in $FILES; do
 done
 rm -f "$STATE"/done-* 2>/dev/null
 ls -1t "$STATE"/backup/* 2>/dev/null | tail -n +21 | xargs -r rm -f
-# 6) pemantau cepat: cek version.txt tiap 5 detik (cron tiap menit), deploy penuh hanya jika versi berubah
+# 6) pemantau cepat: cek commit terbaru tiap 5 detik (cron tiap menit), deploy penuh hanya jika versi berubah
 W=/usr/local/bin/niscaya-watch; tw=$(mktemp)
 cat > "$tw" <<'EOW'
 #!/bin/bash
-# NISCAYA watcher 5 detik — dipanggil cron tiap menit, berjalan ±58 detik
+# NISCAYA watcher 5 detik v2 — cek commit terbaru via API GitHub (ETag/304, tanpa cache CDN), dipanggil cron tiap menit
 exec 9>/var/lock/niscaya-watch.lock; flock -n 9 || exit 0
-BASE="${NISCAYA_BASE:-https://raw.githubusercontent.com/tojiwaram-cell/akadifa/main/niscaya}"
+REPO="tojiwaram-cell/akadifa"; API="${NISCAYA_API:-https://api.github.com/repos/$REPO/commits/main}"
 S=/var/lib/niscaya-deploy; mkdir -p "$S"; LOG=/var/log/niscaya-deploy.log
 end=$(( $(date +%s) + 58 ))
 while [ "$(date +%s)" -lt "$end" ]; do
-  v=$(curl -fsS -m 4 "$BASE/version.txt?t=$(date +%s%N)" 2>/dev/null | tr -d '[:space:]' | head -c 100)
-  if [ -n "$v" ] && [ "$v" != "$(cat "$S/version.seen" 2>/dev/null)" ]; then
-    echo "$(date '+%F %T') versi baru $v terdeteksi" >> "$LOG"
-    if flock -w 50 /var/lock/niscaya-deploy.lock "${NISCAYA_DEPLOY:-/usr/local/bin/niscaya-deploy}" >> "$LOG" 2>&1; then echo "$v" > "$S/version.seen"; fi
+  et=$(cat "$S/etag" 2>/dev/null)
+  code=$(curl -sS -m 4 -o "$S/sha.tmp" -D "$S/hdr.tmp" -w '%{http_code}' -H "Accept: application/vnd.github.sha" -H "User-Agent: niscaya-watch" ${et:+-H "If-None-Match: $et"} "$API" 2>/dev/null)
+  if [ "$code" = "200" ]; then
+    sha=$(tr -dc '0-9a-f' < "$S/sha.tmp" | head -c 40)
+    grep -i '^etag:' "$S/hdr.tmp" | cut -d' ' -f2- | tr -d '\r' > "$S/etag"
+    if [ ${#sha} -eq 40 ] && [ "$sha" != "$(cat "$S/sha.seen" 2>/dev/null)" ]; then
+      echo "$(date '+%F %T') commit baru ${sha:0:7} terdeteksi" >> "$LOG"
+      if NISCAYA_BASE="${NISCAYA_RAW:-https://raw.githubusercontent.com/$REPO}/$sha/niscaya" flock -w 50 /var/lock/niscaya-deploy.lock "${NISCAYA_DEPLOY:-/usr/local/bin/niscaya-deploy}" >> "$LOG" 2>&1; then echo "$sha" > "$S/sha.seen"; fi
+    fi
   fi
   sleep 5
 done
