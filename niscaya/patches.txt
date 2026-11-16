@@ -8,4 +8,4 @@
 0008-status-dp.py
 0009-perbaikan-bug-label-qr.py
 0011-penanda-rilis.py
-0014-diagnosa-sekali.py
+0015-hapus-diagnosa.py
