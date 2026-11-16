@@ -1,9 +1,11 @@
+/*TEK-OWNER v3*/
 /* ================= TEKNISI (akun terpisah, data di layanan /tapi) ================= */
 const TEK = { state:null, filterTek:'Semua', filterSt:'Aktif', bulan:'', loading:false, err:'', ver:0 };
 const TEK_ST_COLOR = {Antri:'#8590a2', Dikerjakan:'#cf9f02', Selesai:'#1f845a', Gagal:'#c9372c'};
 async function tekApi(path, body){
   const o = body===undefined ? {cache:'no-store', credentials:'same-origin'} : {method:'POST', credentials:'same-origin', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)};
-  const r = await fetch(path, o); const j = await r.json().catch(()=>({}));
+  let r; try{ r = await fetch(path, o); }catch(_){ throw new Error('Layanan teknisi belum bisa dihubungi — periksa koneksi, lalu coba lagi'); }
+  const j = await r.json().catch(()=>({}));
   if(!r.ok) throw new Error(j.error || ('Layanan teknisi belum siap (' + r.status + ')'));
   return j;
 }
@@ -50,7 +52,8 @@ function renderTeknisi(c, ta){
   ta.querySelector('#tkAkunBtn').onclick = () => openTekAkunModal();
   if(!TEK.state){
     c.innerHTML = `<div class="panel"><div class="empty"><p>${TEK.err ? '⚠ ' + esc(TEK.err) : 'Memuat data teknisi…'}</p></div></div>`;
-    if(!TEK.loading){ TEK.loading = true; tekLoad().then(()=>{ TEK.loading=false; if(currentTab==='teknisi') render(); }).catch(e=>{ TEK.loading=false; TEK.err = e.message; if(currentTab==='teknisi') renderTeknisi(c, ta); }); }
+    if(TEK.err){ c.querySelector('.empty').insertAdjacentHTML('beforeend', '<p><button class="btn btn-sm" id="tkRetry">↻ Coba lagi</button></p>'); c.querySelector('#tkRetry').onclick = () => { TEK.err = ''; renderTeknisi(c, ta); }; }
+    if(!TEK.loading && !TEK.err){ TEK.loading = true; tekLoad().then(()=>{ TEK.loading=false; if(currentTab==='teknisi') render(); }).catch(e=>{ TEK.loading=false; TEK.err = e.message; if(currentTab==='teknisi') renderTeknisi(c, ta); }); }
     return;
   }
   const S = TEK.state, accs = S.accounts;

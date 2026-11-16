@@ -96,15 +96,25 @@ except Exception as e: log("galat sistem: %s" % e)
 # ---- menu Teknisi di halaman master ----
 if not path or not os.path.isfile(path): sys.exit(0)
 src = open(path, encoding="utf-8").read()
-if "function renderTeknisi" in src: sys.exit(0)
+OWNER = EDITS[2][1][:-len("/* ================= TOAST ================= */")]
+VER = OWNER.split("\n", 1)[0]
+if VER in src: sys.exit(0)
 crlf = "\r\n" in src
 if crlf: src = src.replace("\r\n", "\n")
-for i, (old, new) in enumerate(EDITS, 1):
-    if src.count(old) != 1: log("menu: edit %d tidak cocok - dibatalkan" % i); sys.exit(2)
-    src = src.replace(old, new)
+TOAST = "/* ================= TOAST ================= */"
+if "function renderTeknisi" in src:
+    a = src.find("/*TEK-OWNER v")
+    if a < 0: a = src.find("/* ================= TEKNISI (akun terpisah")
+    z = src.find(TOAST, a)
+    if a < 0 or z < 0: log("menu: blok lama tidak ditemukan - dibatalkan"); sys.exit(2)
+    src = src[:a] + OWNER + src[z:]
+else:
+    for i, (old, new) in enumerate(EDITS, 1):
+        if src.count(old) != 1: log("menu: edit %d tidak cocok - dibatalkan" % i); sys.exit(2)
+        src = src.replace(old, new)
 if crlf: src = src.replace("\n", "\r\n")
 open(path, "w", encoding="utf-8").write(src)
-print("0016: menu Teknisi terpasang")
+print("0016: menu Teknisi terpasang/diperbarui")
 '''
 out = tpl.replace("__FILES__", repr(json.dumps(FILES, ensure_ascii=False))).replace("__EDITS__", repr(json.dumps(EDITS, ensure_ascii=False)))
 open(os.path.join(D, "..", "patches", "0016-teknisi.py"), "w", encoding="utf-8").write(out)
