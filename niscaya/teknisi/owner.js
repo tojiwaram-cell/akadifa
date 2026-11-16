@@ -1,4 +1,4 @@
-/*TEK-OWNER v4*/
+/*TEK-OWNER v5*/
 /* ================= TEKNISI (akun terpisah, data di layanan /tapi) ================= */
 const TEK = { state:null, filterTek:'Semua', filterSt:'Aktif', bulan:'', loading:false, err:'', ver:0 };
 const TEK_ST_COLOR = {Antri:'#8590a2', Dikerjakan:'#cf9f02', Selesai:'#1f845a', Gagal:'#c9372c'};
@@ -9,7 +9,7 @@ async function tekApi(path, body){
   if(!r.ok) throw new Error(j.error || ('Layanan teknisi belum siap (' + r.status + ')'));
   return j;
 }
-function tekJam(j){ if(!j.mulai) return null; return ((j.selesai || Date.now()/1000) - j.mulai) / 3600; }
+function tekJam(j){ if(!j.mulai) return null; if(!j.selesai && (j.status==='Selesai'||j.status==='Gagal')) return null; return ((j.selesai || Date.now()/1000) - j.mulai) / 3600; }
 function tekFmtJam(h){ if(h===null || h===undefined) return '-'; return h < 1 ? Math.round(h*60) + ' mnt' : h.toFixed(1).replace('.',',') + ' jam'; }
 function tekParts(j){ return (j.parts||[]).reduce((a,p)=>a+(Number(p.nominal)||0),0); }
 function tekTgl(t){ return t ? new Date(t*1000).toLocaleString('id-ID',{day:'numeric',month:'short',year:'2-digit',hour:'2-digit',minute:'2-digit'}) : '-'; }
@@ -57,25 +57,12 @@ function renderTeknisi(c, ta){
     return;
   }
   const S = TEK.state, accs = S.accounts;
-  const inBulan = j => { if(!TEK.bulan) return true; const t = j.selesai || j.dibuat; return t && localYMD(new Date(t*1000)).slice(0,7) === TEK.bulan; };
-  const perTek = accs.map(a => {
-    const my = S.jobs.filter(j => j.teknisi === a.username);
-    const aktif = my.filter(j => j.status==='Antri' || j.status==='Dikerjakan');
-    const done = my.filter(j => j.status==='Selesai' && inBulan(j));
-    const gagal = my.filter(j => j.status==='Gagal' && inBulan(j));
-    const dur = done.map(tekJam).filter(h => h!==null);
-    const ontime = done.filter(j => j.targetJam && tekJam(j)!==null && tekJam(j) <= j.targetJam).length;
-    const bertarget = done.filter(j => j.targetJam).length;
-    return { a, aktif:aktif.length, done:done.length, gagal:gagal.length,
-      rata: dur.length ? dur.reduce((x,y)=>x+y,0)/dur.length : null,
-      ontime: bertarget ? Math.round(ontime/bertarget*100) : null,
-      upah: done.reduce((x,j)=>x+(Number(j.upah)||0),0), part: done.reduce((x,j)=>x+tekParts(j),0),
-      sukses: (done.length+gagal.length) ? Math.round(done.length/(done.length+gagal.length)*100) : null };
-  });
+  const inBulan = j => tekInBulan(j);
+  const perTek = accs.map(a => tekStats(S, a));
   let rows = S.jobs.filter(j => (TEK.filterTek==='Semua' || j.teknisi===TEK.filterTek)
-    && (TEK.filterSt==='Semua' || (TEK.filterSt==='Aktif' ? (j.status==='Antri'||j.status==='Dikerjakan') : j.status===TEK.filterSt)) && inBulan(j));
+    && (TEK.filterSt==='Semua' || (TEK.filterSt==='Aktif' ? (j.status==='Antri'||j.status==='Dikerjakan') : j.status===TEK.filterSt)) && (TEK.filterSt==='Aktif' || inBulan(j)));
   rows = rows.slice().sort((a,b)=>(b.diubah||b.dibuat||0)-(a.diubah||a.dibuat||0));
-  const card = (lbl, val, sub, color) => `<div class="stat-card"><div class="lbl">${lbl}</div><div class="val" style="font-size:19px${color?';color:'+color:''}">${val}</div><div class="sub">${sub}</div></div>`;
+  const card = (lbl, val, sub, color, user, key) => `<div class="stat-card tk-stat" role="button" tabindex="0" data-tkstat="${esc(user)}|${key}" title="Klik untuk melihat rincian"><div class="lbl">${lbl}</div><div class="val" style="font-size:19px${color?';color:'+color:''}">${val}</div><div class="sub">${sub}</div><div class="tk-more">Lihat rincian ›</div></div>`;
   c.innerHTML = `
     <div class="toolbar" style="flex-wrap:wrap">
       <span class="dim" style="font-size:13px">Periode kinerja:</span>
@@ -88,12 +75,12 @@ function renderTeknisi(c, ta){
         ${x.a.punyaPassword ? '' : '<span style="font-size:12px;color:#B65C00;font-weight:600">⚠ Kata sandi belum diatur — klik ⚙ Akun Teknisi</span>'}
       </div>
       <div class="grid-stats">
-        ${card('Aktif', x.aktif, 'antri + dikerjakan')}
-        ${card('Selesai', x.done, (x.gagal ? x.gagal + ' gagal · ' : '') + 'tingkat berhasil ' + (x.sukses===null?'—':x.sukses+'%'))}
-        ${card('Rata-rata Durasi', tekFmtJam(x.rata), 'per pekerjaan selesai')}
-        ${card('Tepat Target', x.ontime===null?'—':x.ontime+'%', 'selesai ≤ target jam', x.ontime!==null && x.ontime<70 ? 'var(--danger)' : 'var(--ready)')}
-        ${card('Upah', rupiah(x.upah), 'dari pekerjaan selesai')}
-        ${card('Biaya Part', rupiah(x.part), 'dari pekerjaan selesai')}
+        ${card('Aktif', x.aktif, (x.antri.length||x.kerja.length) ? x.antri.length + ' antri · ' + x.kerja.length + ' dikerjakan' : 'antri + dikerjakan', '', x.a.username, 'aktif')}
+        ${card('Selesai', x.done, (x.gagal ? x.gagal + ' gagal · ' : '') + 'tingkat berhasil ' + (x.sukses===null?'—':x.sukses+'%'), '', x.a.username, 'selesai')}
+        ${card('Rata-rata Durasi', tekFmtJam(x.rata), x.durJobs.length ? 'dari ' + x.durJobs.length + ' pekerjaan selesai' : 'per pekerjaan selesai', '', x.a.username, 'durasi')}
+        ${card('Tepat Target', x.ontime===null?'—':x.ontime+'%', x.bertargetJobs.length ? x.ontimeJobs.length + ' dari ' + x.bertargetJobs.length + ' selesai ≤ target' : 'selesai ≤ target jam', x.ontime!==null && x.ontime<70 ? 'var(--danger)' : '', x.a.username, 'target')}
+        ${card('Upah', rupiah(x.upah), 'dari ' + x.done + ' pekerjaan selesai', '', x.a.username, 'upah')}
+        ${card('Biaya Part', rupiah(x.part), x.partJobs.length ? x.partJobs.length + ' pekerjaan memakai part' : 'dari pekerjaan selesai', '', x.a.username, 'part')}
       </div></div>`).join('')}
     <div class="toolbar" style="flex-wrap:wrap">
       <select id="tkFTek">${['Semua', ...accs.map(a=>a.username)].map(u=>`<option value="${esc(u)}" ${TEK.filterTek===u?'selected':''}>${u==='Semua'?'Semua teknisi':esc(tekAcc(u).label)}</option>`).join('')}</select>
@@ -122,7 +109,84 @@ function renderTeknisi(c, ta){
   c.querySelector('#tkFSt').onchange = e => { TEK.filterSt = e.target.value; renderTeknisi(c, ta); };
   c.querySelector('#tkRefresh').onclick = async () => { try{ await tekLoad(); renderTeknisi(c, ta); showToast('Data teknisi diperbarui'); }catch(e){ showToast(e.message); } };
   c.querySelectorAll('[data-tkjob]').forEach(tr => tr.onclick = () => openTekJobModal(tr.dataset.tkjob));
+  c.querySelectorAll('[data-tkstat]').forEach(el => {
+    const go = () => { const [u, k] = el.dataset.tkstat.split('|'); openTekStatModal(u, k, c, ta); };
+    el.onclick = go; el.onkeydown = e => { if(e.key==='Enter' || e.key===' '){ e.preventDefault(); go(); } };
+  });
 }
+
+/* ---- statistik kinerja: satu sumber hitungan untuk kartu & rincian ---- */
+function tekInBulan(j){ if(!TEK.bulan) return true; const t = j.selesai || j.dibuat; return !!t && localYMD(new Date(t*1000)).slice(0,7) === TEK.bulan; }
+function tekStats(S, a){
+  const my = S.jobs.filter(j => j.teknisi === a.username);
+  const antri = my.filter(j => j.status==='Antri'), kerja = my.filter(j => j.status==='Dikerjakan');
+  const doneJobs = my.filter(j => j.status==='Selesai' && tekInBulan(j));
+  const gagalJobs = my.filter(j => j.status==='Gagal' && tekInBulan(j));
+  const durJobs = doneJobs.filter(j => tekJam(j)!==null);
+  const bertargetJobs = durJobs.filter(j => Number(j.targetJam) > 0);
+  const ontimeJobs = bertargetJobs.filter(j => tekJam(j) <= Number(j.targetJam));
+  const partJobs = doneJobs.filter(j => tekParts(j) > 0);
+  const sum = (arr, f) => arr.reduce((x, j) => x + f(j), 0);
+  return { a, antri, kerja, aktifJobs: kerja.concat(antri), aktif: antri.length + kerja.length,
+    doneJobs, gagalJobs, done: doneJobs.length, gagal: gagalJobs.length, durJobs, bertargetJobs, ontimeJobs, partJobs,
+    rata: durJobs.length ? sum(durJobs, tekJam) / durJobs.length : null,
+    ontime: bertargetJobs.length ? Math.round(ontimeJobs.length / bertargetJobs.length * 100) : null,
+    upah: sum(doneJobs, j => Number(j.upah)||0), part: sum(doneJobs, tekParts),
+    sukses: (doneJobs.length + gagalJobs.length) ? Math.round(doneJobs.length / (doneJobs.length + gagalJobs.length) * 100) : null };
+}
+async function openTekStatModal(user, key, c, ta){
+  try{ await tekLoad(); }catch(e){ showToast('Memakai data terakhir: ' + e.message); }
+  if(!TEK.state) return;
+  const acc = TEK.state.accounts.find(a => a.username === user); if(!acc) return;
+  const x = tekStats(TEK.state, acc);
+  const per = TEK.bulan ? 'periode ' + new Date(TEK.bulan + '-01T00:00:00').toLocaleDateString('id-ID',{month:'long',year:'numeric'}) : 'semua periode';
+  const unitTd = j => { const u = j.unit||{}; return `<b>${esc(u.merek||'')} ${esc(u.tipe||'')}</b><div class="dim mono" style="font-size:11.5px">${esc(j.unitId||'')}${u.noSeri?' · SN '+esc(u.noSeri):''}</div>`; };
+  const stTd = j => `<span style="background:${TEK_ST_COLOR[j.status]||'#888'};color:#fff;border-radius:999px;padding:3px 9px;font-size:11.5px;font-weight:700">${esc(j.status)}</span>`;
+  const durTd = j => { const h = tekJam(j), t = Number(j.targetJam)||0; const telat = h!==null && t && h > t; return `<span class="mono" style="${telat?'color:var(--danger);font-weight:700':''}">${tekFmtJam(h)}</span><span class="dim mono"> / ${t?tekFmtJam(t):'-'}</span>`; };
+  const M = {
+    aktif:   { t:'Pekerjaan aktif', rumus:'Semua pekerjaan berstatus Antri atau Dikerjakan saat ini (tidak dibatasi periode).', rows:x.aktifJobs,
+               cols:['Status','Durasi berjalan / target'], cell:j => [stTd(j), durTd(j)], tot:x.antri.length + ' antri · ' + x.kerja.length + ' dikerjakan', st:'Aktif' },
+    selesai: { t:'Pekerjaan selesai & gagal', rumus:'Tingkat berhasil = selesai ÷ (selesai + gagal) pada ' + per + '.', rows:x.doneJobs.concat(x.gagalJobs),
+               cols:['Status','Tanggal selesai'], cell:j => [stTd(j), `<span class="dim" style="font-size:12px">${tekTgl(j.selesai)}</span>`],
+               tot:x.done + ' selesai · ' + x.gagal + ' gagal · berhasil ' + (x.sukses===null?'—':x.sukses+'%'), st:'Semua' },
+    durasi:  { t:'Rata-rata durasi', rumus:'Rata-rata (waktu selesai − waktu mulai) dari pekerjaan Selesai yang punya catatan mulai, ' + per + '.', rows:x.durJobs,
+               cols:['Durasi / target','Mulai → selesai'], cell:j => [durTd(j), `<span class="dim" style="font-size:12px">${tekTgl(j.mulai)} → ${tekTgl(j.selesai)}</span>`],
+               tot:'Rata-rata ' + tekFmtJam(x.rata) + ' dari ' + x.durJobs.length + ' pekerjaan' + (x.done > x.durJobs.length ? ' (' + (x.done - x.durJobs.length) + ' selesai tanpa catatan mulai tidak dihitung)' : ''), st:'Selesai' },
+    target:  { t:'Ketepatan target', rumus:'Persentase pekerjaan Selesai yang durasinya ≤ target jam. Pekerjaan tanpa target tidak dihitung (' + per + ').', rows:x.bertargetJobs,
+               cols:['Durasi / target','Hasil'], cell:j => [durTd(j), tekJam(j) <= Number(j.targetJam) ? '<b style="color:var(--ready)">Tepat</b>' : '<b style="color:var(--danger)">Terlambat</b>'],
+               tot:x.ontimeJobs.length + ' tepat dari ' + x.bertargetJobs.length + ' → ' + (x.ontime===null?'—':x.ontime+'%'), st:'Selesai' },
+    upah:    { t:'Upah teknisi', rumus:'Jumlah upah dari pekerjaan berstatus Selesai, ' + per + '. Upah pekerjaan gagal/aktif belum dihitung.', rows:x.doneJobs,
+               cols:['Tanggal selesai','Upah'], cell:j => [`<span class="dim" style="font-size:12px">${tekTgl(j.selesai)}</span>`, `<span class="mono">${rupiah(Number(j.upah)||0)}</span>`],
+               tot:'Total ' + rupiah(x.upah), st:'Selesai' },
+    part:    { t:'Biaya part', rumus:'Jumlah nominal part yang dicatat teknisi pada pekerjaan Selesai, ' + per + '.', rows:x.partJobs,
+               cols:['Part','Biaya'], cell:j => [esc((j.parts||[]).map(p=>p.nama).filter(Boolean).join(', ')||'-'), `<span class="mono">${rupiah(tekParts(j))}</span>`],
+               tot:'Total ' + rupiah(x.part), st:'Selesai' }
+  }[key];
+  if(!M) return;
+  document.getElementById('modalBox').innerHTML = `
+    <h3>${M.t} — ${esc(acc.label)}</h3>
+    <p class="dim" style="font-size:12.5px;margin:-4px 0 12px">${M.rumus}</p>
+    <div style="background:var(--bg,#f4f6fb);border-radius:10px;padding:10px 12px;font-weight:700;margin-bottom:12px">${M.tot}</div>
+    <div class="table-wrap" style="max-height:55vh;overflow:auto"><table>
+      <thead><tr><th>ID</th><th>Unit</th><th>Pekerjaan</th>${M.cols.map(h=>`<th>${h}</th>`).join('')}</tr></thead>
+      <tbody>${M.rows.map(j => `<tr data-tkd="${esc(j.id)}" style="cursor:pointer"><td class="mono dim">${esc(j.id)}</td><td>${unitTd(j)}</td><td>${esc(j.jenis||'-')}</td>${M.cell(j).map(v=>`<td>${v}</td>`).join('')}</tr>`).join('')
+        || `<tr><td colspan="${3 + M.cols.length}"><div class="empty"><p>Belum ada pekerjaan untuk angka ini (${per}).</p></div></td></tr>`}</tbody>
+    </table></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="tks_tbl" style="margin-right:auto">Tampilkan di tabel</button>
+      <button class="btn btn-primary" id="tks_close">Tutup</button>
+    </div>`;
+  const ov = document.getElementById('overlay'); ov.classList.add('show');
+  document.getElementById('tks_close').onclick = () => { ov.classList.remove('show'); if(currentTab==='teknisi') render(); };
+  document.getElementById('tks_tbl').onclick = () => {
+    TEK.filterTek = user; TEK.filterSt = M.st; ov.classList.remove('show'); render();
+    setTimeout(() => { const t = document.querySelector('#tkFTek'); if(t) t.scrollIntoView({behavior:'smooth', block:'start'}); }, 60);
+  };
+  document.querySelectorAll('[data-tkd]').forEach(tr => tr.onclick = () => openTekJobModal(tr.dataset.tkd));
+}
+if(!document.getElementById('tkStatCss')){ const st = document.createElement('style'); st.id = 'tkStatCss';
+  st.textContent = '.tk-stat{cursor:pointer;transition:transform .15s,box-shadow .15s;outline:none}.tk-stat:hover,.tk-stat:focus-visible{transform:translateY(-2px);box-shadow:0 14px 30px -14px rgba(20,45,95,.45)}.tk-stat:active{transform:translateY(0)}.tk-stat .tk-more{font-size:11.5px;font-weight:700;opacity:.55;margin-top:6px}.tk-stat:hover .tk-more{opacity:1}';
+  document.head.appendChild(st); }
 
 function openTekJobModal(jid){
   if(!TEK.state){ showToast('Data teknisi belum termuat'); return; }
