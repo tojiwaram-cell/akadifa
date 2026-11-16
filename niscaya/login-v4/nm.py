@@ -126,7 +126,7 @@ def art():
     head = '<section class="cb-art" aria-hidden="true">'
     assert a.startswith(head)
     extra = ('<div class="nm-orb o1"></div><div class="nm-orb o2"></div><div class="nm-orb o3"></div>'
-             '<div class="nm-hero"><img class="nm-logo" src="/tapi/logo" alt="Logo Niscaya Makassar" width="128" height="128" onerror="this.remove()"><div><h2>Niscaya Makassar</h2><p>Selamat datang di sistem toko laptop second</p></div></div>'
+             '<div class="nm-hero"><img class="nm-logo" src="/tapi/logo" alt="Logo Niscaya Makassar" width="128" height="128" onerror="' + "var b=document.querySelector('.brand-logo');if(b&&b.src&&this.src!==b.src)this.src=b.src;else this.remove()" + '"><div><h2>Niscaya Makassar</h2><p>Selamat datang di sistem toko laptop second</p></div></div>'
              '<div class="nm-trail">' + '<i></i>' * 10 + '</div>')
     return head + extra + a[len(head):]
 
