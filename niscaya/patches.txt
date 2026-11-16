@@ -15,3 +15,4 @@
 0021-login-ungu-3d.py
 0023-alur-terjual.py
 0024-perbaikan-bug.py
+0029-dashboard-fungsi.py

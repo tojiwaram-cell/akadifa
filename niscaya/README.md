@@ -71,3 +71,8 @@ Referensi: Pinterest pin 1130825787720003740 (dashboard ungu-pink: rel menu ungu
 kartu tugas berikon dengan progress bar, panel kanan aktivitas). Semua di `teknisi/teknisi.html` (CSS `/*DSH v1*/`, JS `render`/`fillList`/`tileHtml`).
 Grafik = jumlah selesai (pink) & upah (putih) per bulan; pil bulan & ‹ › memilih bulan; kartu tugas membuka jendela detail (laporan, part, foto, status).
 Setelah mengubah: `python3 niscaya/teknisi/build_patch.py`.
+## Dashboard semua berfungsi (rilis 0029)
+Kartu Total/Ready/Booking/DP membuka Stok dengan filter status; Nilai Modal, Nilai Jual, Potensi Untung, Biaya Service membuka rincian per unit
+(klik baris = buka unit); "Isi sekarang" membuka pengisian harga jual/modal massal; Transaksi Terbaru membuka unit; baris tabel bulan memfilter
+bulan, baris tahun memilih tahun; kartu Omzet/Laba/Unit Terjual/Rata-rata membuka daftar penjualan periode terpilih.
+Sumber: `dash2/dashfungsi.js` → `python3 niscaya/dash2/build_patch.py` → `patches/0029-dashboard-fungsi.py`.
