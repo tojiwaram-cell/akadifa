@@ -36,3 +36,8 @@ Referensi: Magnific/Freepik premium-vector 3966284 (latar ungu berbintang, jejak
 Roket diganti laptop 3D CSS yang bergoyang (rotateX/Y/Z + engsel layar), ukuran membesar otomatis di Full HD/2K/4K.
 Sumber: `niscaya/login-v4/nm.py`. Jalankan `python3 niscaya/login-v4/build_patch.py` → membuat `patches/0021-login-ungu-3d.py`
 (login owner, dipasang SETELAH 0017) sekaligus memperbarui `teknisi/teknisi.html` dan `patches/0016-teknisi.py` (login teknisi).
+
+## Logo toko di banner login (rilis 0022)
+Banner ungu (owner & teknisi) menampilkan logo NISCAYA MAKASSAR di samping judul. Logo tidak disalin: layanan teknisi menyajikan
+`/tapi/logo` dari gambar `.brand-logo` di `/var/www/niscaya/index.html`, jadi bila logo aplikasi diganti, banner ikut berubah.
+Sumber: `login-v4/nm.py` (blok `.nm-hero`/`.nm-logo`) dan `teknisi/server.py` (`app_logo`).

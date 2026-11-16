@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # NISCAYA MAKASSAR — layanan akun teknisi (terpisah dari akun master).
 # Teknisi hanya bisa melihat & memperbarui pekerjaan miliknya. Owner dikenali lewat sesi master (/api/me).
-import json, os, re, time, secrets, hashlib, hmac, threading, urllib.request
+import json, os, re, time, secrets, hashlib, hmac, threading, urllib.request, base64
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 from http.cookies import SimpleCookie
 
@@ -17,6 +17,22 @@ ROLES = {"ringan": "Service ringan", "mesin": "Perbaikan mesin"}
 STATUS = ["Antri", "Dikerjakan", "Selesai", "Gagal"]
 
 def now(): return int(time.time())
+
+# Logo toko diambil dari aplikasi utama (gambar .brand-logo di index.html) agar banner login selalu sama dengan logo aplikasi.
+APP_HTML = os.environ.get("TEK_APP_HTML", "/var/www/niscaya/index.html")
+LOGO = {"mtime": None, "type": None, "data": None}
+def app_logo():
+    try: mt = os.path.getmtime(APP_HTML)
+    except Exception: return LOGO
+    if LOGO["mtime"] == mt: return LOGO
+    try:
+        h = open(APP_HTML, encoding="utf-8", errors="ignore").read()
+        i = h.find('class="brand-logo"'); seg = h[max(0, i - 400000):i + 400000] if i >= 0 else h
+        m = re.search(r"data:image/(jpeg|png|webp|gif);base64,([A-Za-z0-9+/=]+)", seg) or re.search(r"data:image/(jpeg|png|webp|gif);base64,([A-Za-z0-9+/=]+)", h)
+        LOGO.update(mtime=mt, type=m.group(1), data=base64.b64decode(m.group(2))) if m else LOGO.update(mtime=mt, type=None, data=None)
+    except Exception:
+        pass
+    return LOGO
 
 def load():
     try:
@@ -141,6 +157,15 @@ class H(BaseHTTPRequestHandler):
             if not self.owner(): return self.send(401, {"error": "Khusus akun master"})
             with LOCK: d = load()
             return self.send(200, {"version": d["version"], "accounts": [public_acc(k, v) for k, v in d["accounts"].items()], "jobs": d["jobs"], "roles": ROLES})
+        if p == "/tapi/logo":
+            lg = app_logo()
+            if not lg["data"]: return self.send(404, {"error": "logo tidak ada"})
+            self.send_response(200)
+            self.send_header("Content-Type", "image/" + lg["type"])
+            self.send_header("Cache-Control", "public, max-age=600")
+            self.send_header("X-Content-Type-Options", "nosniff")
+            self.send_header("Content-Length", str(len(lg["data"])))
+            self.end_headers(); self.wfile.write(lg["data"]); return
         if p == "/tapi/version":
             with LOCK: d = load()
             return self.send(200, {"version": d["version"]})

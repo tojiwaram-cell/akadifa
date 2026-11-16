@@ -1,4 +1,4 @@
-# Login v4 (rilis 0021): gaya ungu "Business Startup" (referensi Magnific/Freepik 3966284) dengan laptop 3D bergoyang.
+# Login v4 (rilis 0021, logo toko di banner sejak 0022): gaya ungu "Business Startup" (referensi Magnific/Freepik 3966284) dengan laptop 3D bergoyang.
 # Dipakai index.html (patch 0021, di atas 0017) dan teknisi.html (blok /*NM-LOGIN v4*/).
 # Aturan: tanpa backtick, tanpa "${", tanpa backslash (CSS disisipkan ke template literal JS).
 import os, importlib.util
@@ -23,7 +23,8 @@ CSS = r"""
 .nm-orb.o2{width:90px;height:90px;left:12%;bottom:12%;animation-delay:-3s}
 .nm-orb.o3{width:46px;height:46px;left:52%;top:16%;animation-delay:-6s}
 @keyframes nmOrb{0%,100%{transform:translateY(0)}50%{transform:translateY(-14px)}}
-.nm-hero{position:absolute;left:8%;top:7.5%;color:#fff;z-index:3}
+.nm-hero{position:absolute;left:8%;top:7.5%;color:#fff;z-index:3;display:flex;align-items:center;gap:clamp(14px,1.4vw,26px)}
+.nm-logo{flex:none;width:clamp(72px,6.4vw,128px);height:clamp(72px,6.4vw,128px);border-radius:22%;object-fit:cover;background:#fff;box-shadow:0 0 0 3px rgba(255,255,255,.85),0 0 0 7px rgba(255,255,255,.16),0 18px 40px -12px rgba(25,0,55,.65);animation:nmOrb 9s ease-in-out infinite}
 .nm-hero h2{margin:0;font-weight:600;font-size:clamp(28px,2.6vw,52px);letter-spacing:.3px;line-height:1.1;text-shadow:0 6px 24px rgba(30,0,60,.35)}
 .nm-hero p{margin:8px 0 0 2px;font-size:clamp(13px,1vw,19px);opacity:.88;letter-spacing:.4px}
 .nm-trail{position:absolute;inset:0;pointer-events:none;z-index:1}
@@ -96,7 +97,8 @@ CSS = r"""
   :is(#loginOverlay,#tLogin) .cb-page{width:100%;min-height:100%;margin:0;grid-template-columns:1fr;border-radius:0;box-shadow:none}
   :is(#loginOverlay,#tLogin) .cb-art{min-height:0;height:360px;overflow:hidden}
   :is(#loginOverlay,#tLogin) .l3-wrap{transform:scale(.58);padding:300px 30px 0 0}
-  .nm-hero{left:22px;top:22px}
+  .nm-hero{left:22px;top:22px;gap:12px}
+  .nm-logo{width:58px;height:58px}
   .nm-trail i:nth-child(n+6){display:none}
   :is(#loginOverlay,#tLogin) .cb-side{padding:34px 20px 44px;border-radius:26px 26px 0 0}
   :is(#loginOverlay,#tLogin) .cb-side:before{left:0;right:0;top:-40px;bottom:auto;width:auto;height:80px;background:radial-gradient(circle at 50px 46px,#fff 34px,transparent 35px) 0 0/96px 80px repeat-x,radial-gradient(circle at 20px 58px,#fff 26px,transparent 27px) 0 0/96px 80px repeat-x}
@@ -124,7 +126,7 @@ def art():
     head = '<section class="cb-art" aria-hidden="true">'
     assert a.startswith(head)
     extra = ('<div class="nm-orb o1"></div><div class="nm-orb o2"></div><div class="nm-orb o3"></div>'
-             '<div class="nm-hero"><h2>Niscaya Makassar</h2><p>Selamat datang di sistem toko laptop second</p></div>'
+             '<div class="nm-hero"><img class="nm-logo" src="/tapi/logo" alt="Logo Niscaya Makassar" width="128" height="128" onerror="this.remove()"><div><h2>Niscaya Makassar</h2><p>Selamat datang di sistem toko laptop second</p></div></div>'
              '<div class="nm-trail">' + '<i></i>' * 10 + '</div>')
     return head + extra + a[len(head):]
 
