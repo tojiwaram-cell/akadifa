@@ -9,3 +9,4 @@
 0009-perbaikan-bug-label-qr.py
 0011-penanda-rilis.py
 0015-hapus-diagnosa.py
+0016-teknisi.py

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>NISCAYA MAKASSAR — Teknisi</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:'Plus Jakarta Sans',system-ui,-apple-system,'Segoe UI',sans-serif;background:#eef1f6;color:#14161f}
+button,input,textarea,select{font:inherit}
+.wrap{max-width:760px;margin:0 auto;padding:16px 14px 90px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px}
+.brand{font-weight:800;font-size:17px}.brand i{font-style:normal;color:#1a5fd6}
+.who{font-size:12.5px;color:#5b6475;text-align:right}
+.btn{border:1.5px solid #14161f;background:#fff;color:#14161f;border-radius:999px;padding:9px 16px;font-weight:700;cursor:pointer}
+.btn.dark{background:#14161f;color:#fff}.btn.green{background:#1f845a;border-color:#1f845a;color:#fff}.btn.red{background:#fff;border-color:#c9372c;color:#c9372c}
+.btn.sm{padding:6px 12px;font-size:12.5px}.btn:disabled{opacity:.5}
+.card{background:#fff;border-radius:18px;padding:16px;box-shadow:0 8px 24px -16px rgba(20,45,95,.35);margin-bottom:12px}
+.login{max-width:380px;margin:12vh auto 0}
+.login h1{font-size:22px;margin:0 0 4px}.dim{color:#5b6475;font-size:13px}
+label{display:block;font-size:12.5px;font-weight:700;margin:12px 0 5px;color:#3b4252}
+input,textarea,select{width:100%;padding:11px 12px;border:1.5px solid #d6dbe6;border-radius:12px;background:#fff}
+textarea{min-height:70px;resize:vertical}
+.err{color:#c9372c;font-size:13px;margin-top:10px;min-height:18px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.stat{background:#fff;border-radius:14px;padding:11px 12px}.stat b{display:block;font-size:19px}.stat span{font-size:11.5px;color:#5b6475}
+.tabs{display:flex;gap:6px;overflow:auto;margin-bottom:12px}
+.tab{border:0;background:#fff;border-radius:999px;padding:8px 14px;font-weight:700;font-size:13px;white-space:nowrap;cursor:pointer}
+.tab.on{background:#14161f;color:#fff}
+.job h3{margin:0 0 4px;font-size:15.5px}
+.badge{display:inline-block;font-size:11px;font-weight:800;border-radius:999px;padding:4px 9px;color:#fff}
+.b-Antri{background:#8590a2}.b-Dikerjakan{background:#cf9f02}.b-Selesai{background:#1f845a}.b-Gagal{background:#c9372c}
+.row{display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap}
+.spec{font-size:12.5px;color:#3b4252;margin:6px 0}
+.note{background:#f4f6fb;border-radius:12px;padding:9px 11px;font-size:13px;margin:8px 0}
+.late{color:#c9372c;font-weight:700}
+.parts .pr{display:grid;grid-template-columns:1fr 120px 36px;gap:6px;margin-bottom:6px}
+.acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.empty{text-align:center;color:#5b6475;padding:30px 10px}
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#14161f;color:#fff;padding:10px 16px;border-radius:999px;font-size:13px;opacity:0;transition:.25s;pointer-events:none;z-index:99}
+.toast.on{opacity:1}
+details summary{cursor:pointer;font-weight:700;font-size:13px;margin-top:8px}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"><div class="empty">Memuat…</div></div>
+<div class="toast" id="toast"></div>
+<script>
+const $ = s => document.querySelector(s);
+const esc = v => (v===undefined||v===null)?'':String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const rp = n => 'Rp ' + (Number(n)||0).toLocaleString('id-ID');
+const tgl = t => t ? new Date(t*1000).toLocaleString('id-ID',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : '-';
+let ME = null, JOBS = [], TAB = 'aktif', VER = 0, OPEN = new Set();
+function toast(m){ const t=$('#toast'); t.textContent=m; t.classList.add('on'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('on'),2600); }
+async function api(path, body){
+  const o = body===undefined ? {cache:'no-store',credentials:'same-origin'} : {method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)};
+  const r = await fetch(path, o); const j = await r.json().catch(()=>({}));
+  if(r.status===401 && path!=='/tapi/login'){ ME=null; renderLogin('Sesi berakhir, silakan masuk lagi'); throw new Error('401'); }
+  if(!r.ok) throw new Error(j.error || 'Gagal ('+r.status+')');
+  return j;
+}
+function jam(j){ if(!j.mulai) return null; return ((j.selesai || Date.now()/1000) - j.mulai)/3600; }
+function fmtJam(h){ if(h===null) return '-'; return h<1 ? Math.round(h*60)+' mnt' : h.toFixed(1).replace('.',',')+' jam'; }
+function totalParts(j){ return (j.parts||[]).reduce((a,p)=>a+(Number(p.nominal)||0),0); }
+
+function renderLogin(msg){
+  $('#app').innerHTML = `<div class="card login">
+    <div class="brand" style="margin-bottom:14px">NISCAYA <i>MAKASSAR</i></div>
+    <h1>Masuk Teknisi</h1><div class="dim">Akun teknisi dibuat oleh owner. Hubungi owner bila lupa kata sandi.</div>
+    <form id="lf"><label>Nama akun</label><input id="lu" autocomplete="username" autocapitalize="none" required>
+    <label>Kata sandi</label><input id="lp" type="password" autocomplete="current-password" required>
+    <div class="err" id="le">${esc(msg||'')}</div>
+    <button class="btn dark" style="width:100%;margin-top:6px" type="submit">Masuk</button></form></div>`;
+  $('#lf').onsubmit = async e => { e.preventDefault(); $('#le').textContent='';
+    try{ const j = await api('/tapi/login',{username:$('#lu').value.trim(),password:$('#lp').value}); ME=j.akun; await loadJobs(); }
+    catch(err){ if(err.message!=='401') $('#le').textContent=err.message; } };
+}
+async function loadJobs(){ const j = await api('/tapi/jobs'); JOBS = j.jobs; VER = j.version; render(); }
+
+function render(){
+  const bln = new Date(); const awal = new Date(bln.getFullYear(), bln.getMonth(), 1).getTime()/1000;
+  const aktif = JOBS.filter(j=>j.status==='Antri'||j.status==='Dikerjakan');
+  const selesaiBln = JOBS.filter(j=>j.status==='Selesai' && (j.selesai||0)>=awal);
+  const upahBln = selesaiBln.reduce((a,j)=>a+(Number(j.upah)||0),0);
+  const list = (TAB==='aktif' ? aktif : JOBS.filter(j=>j.status!=='Antri'&&j.status!=='Dikerjakan')).slice().sort((a,b)=>(b.diubah||b.dibuat||0)-(a.diubah||a.dibuat||0));
+  $('#app').innerHTML = `
+    <div class="top"><div class="brand">NISCAYA <i>MAKASSAR</i><div class="dim" style="font-weight:600">${esc(ME.roleLabel||'Teknisi')}</div></div>
+      <div class="who"><b>${esc(ME.label)}</b><br><button class="btn sm" id="out" style="margin-top:4px">Keluar</button></div></div>
+    <div class="stats"><div class="stat"><b>${aktif.length}</b><span>pekerjaan aktif</span></div>
+      <div class="stat"><b>${selesaiBln.length}</b><span>selesai bulan ini</span></div>
+      <div class="stat"><b style="font-size:15px">${rp(upahBln)}</b><span>upah bulan ini</span></div></div>
+    <div class="tabs"><button class="tab ${TAB==='aktif'?'on':''}" data-tab="aktif">Aktif (${aktif.length})</button><button class="tab ${TAB==='riwayat'?'on':''}" data-tab="riwayat">Riwayat (${JOBS.length-aktif.length})</button></div>
+    ${list.map(jobHtml).join('') || `<div class="card empty">${TAB==='aktif'?'Belum ada pekerjaan. Tugas baru dari owner akan muncul di sini otomatis.':'Belum ada riwayat.'}</div>`}`;
+  $('#out').onclick = async () => { try{ await api('/tapi/logout',{}); }catch(_){} ME=null; renderLogin(); };
+  document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{TAB=b.dataset.tab; render();});
+  JOBS.forEach(wireJob);
+}
+function jobHtml(j){
+  const u = j.unit||{}; const h = jam(j); const telat = h!==null && j.targetJam && h > j.targetJam;
+  const kunci = !!j.biayaMasuk, bisa = !kunci;
+  return `<div class="card job" id="j-${esc(j.id)}">
+    <div class="row"><h3>${esc(u.merek||'')} ${esc(u.tipe||'')} <span class="dim" style="font-weight:600">· ${esc(j.unitId||u.id||'')}</span></h3><span class="badge b-${esc(j.status)}">${esc(j.status)}</span></div>
+    <div class="spec">${esc([u.processor,u.ram,u.ssd,u.vga,u.layar].filter(Boolean).join(' · ')||'-')}${u.noSeri?' · SN '+esc(u.noSeri):''}</div>
+    <div class="row" style="font-size:13px"><span><b>${esc(j.jenis||'-')}</b> · ${esc(j.id)}</span><span>Target ${j.targetJam?fmtJam(Number(j.targetJam)):'-'} · Durasi <span class="${telat?'late':''}">${fmtJam(h)}</span></span></div>
+    ${j.catatanOwner?`<div class="note"><b>Catatan owner:</b> ${esc(j.catatanOwner)}</div>`:''}
+    <div class="dim" style="font-size:12px">Ditugaskan ${tgl(j.dibuat)} · Mulai ${tgl(j.mulai)} · Selesai ${tgl(j.selesai)} · Upah ${rp(j.upah)}${kunci?' · 🔒 sudah diverifikasi owner':''}</div>
+    <details ${OPEN.has(j.id)?'open':''} data-det="${esc(j.id)}"><summary>Laporan kerja, part &amp; foto</summary>
+      <label>Kerusakan yang ditemukan</label><textarea data-f="catatanKerusakan" ${bisa?'':'disabled'}>${esc(j.catatanKerusakan||'')}</textarea>
+      <label>Hasil pekerjaan</label><textarea data-f="hasil" ${bisa?'':'disabled'}>${esc(j.hasil||'')}</textarea>
+      <label>Sparepart dipakai (total ${rp(totalParts(j))})</label>
+      <div class="parts" data-parts>${(j.parts||[]).map(p=>partRow(p,bisa)).join('')}</div>
+      ${bisa?'<button class="btn sm" data-addpart type="button">+ Part</button>':''}
+      <label>Link foto sebelum (satu per baris)</label><textarea data-f="fotoSebelum" placeholder="https://..." ${bisa?'':'disabled'}>${esc((j.fotoSebelum||[]).join('\n'))}</textarea>
+      <label>Link foto sesudah (satu per baris)</label><textarea data-f="fotoSesudah" placeholder="https://..." ${bisa?'':'disabled'}>${esc((j.fotoSesudah||[]).join('\n'))}</textarea>
+      ${(j.fotoSebelum||[]).concat(j.fotoSesudah||[]).map((f,i)=>`<a href="${esc(f)}" target="_blank" rel="noopener" style="font-size:12.5px;margin-right:10px">Foto ${i+1}</a>`).join('')}
+      ${j.status==='Gagal'?`<label>Alasan gagal</label><textarea data-f="alasanGagal" ${bisa?'':'disabled'}>${esc(j.alasanGagal||'')}</textarea>`:''}
+      ${bisa?'<div class="acts"><button class="btn dark sm" data-save>Simpan laporan</button></div>':''}
+    </details>
+    ${bisa?`<div class="acts">
+      ${j.status==='Antri'?'<button class="btn dark" data-st="Dikerjakan">▶ Mulai kerjakan</button>':''}
+      ${j.status==='Dikerjakan'?'<button class="btn green" data-st="Selesai">✓ Selesai</button><button class="btn red" data-st="Gagal">✕ Gagal / tidak bisa</button>':''}
+      ${(j.status==='Selesai'||j.status==='Gagal')?'<button class="btn sm" data-st="Dikerjakan">↺ Kerjakan lagi</button>':''}
+    </div>`:''}
+  </div>`;
+}
+function partRow(p,bisa){ return `<div class="pr"><input data-pn placeholder="Nama part" value="${esc(p.nama||'')}" ${bisa?'':'disabled'}><input data-pv inputmode="numeric" placeholder="Rp" value="${p.nominal?Number(p.nominal).toLocaleString('id-ID'):''}" ${bisa?'':'disabled'}>${bisa?'<button class="btn sm red" data-delpart type="button">✕</button>':'<span></span>'}</div>`; }
+function collect(el){
+  const v = f => { const x = el.querySelector(`[data-f="${f}"]`); return x ? x.value : undefined; };
+  const lines = t => (t||'').split(/\n+/).map(x=>x.trim()).filter(Boolean);
+  const o = { catatanKerusakan:v('catatanKerusakan'), hasil:v('hasil'), fotoSebelum:lines(v('fotoSebelum')), fotoSesudah:lines(v('fotoSesudah')),
+    parts:[...el.querySelectorAll('.pr')].map(r=>({nama:r.querySelector('[data-pn]').value, nominal:Number(r.querySelector('[data-pv]').value.replace(/\D/g,''))||0})) };
+  if(v('alasanGagal')!==undefined) o.alasanGagal = v('alasanGagal');
+  const bad = o.fotoSebelum.concat(o.fotoSesudah).filter(x=>!/^https?:\/\//i.test(x));
+  if(bad.length){ toast('Link foto harus diawali http:// atau https://'); return null; }
+  return o;
+}
+function wireJob(j){
+  const el = document.getElementById('j-'+j.id); if(!el) return;
+  const det = el.querySelector('[data-det]'); if(det) det.ontoggle = () => { det.open ? OPEN.add(j.id) : OPEN.delete(j.id); };
+  const add = el.querySelector('[data-addpart]'); if(add) add.onclick = () => { el.querySelector('[data-parts]').insertAdjacentHTML('beforeend', partRow({},true)); wireParts(el); };
+  wireParts(el);
+  const sv = el.querySelector('[data-save]'); if(sv) sv.onclick = async () => { const o = collect(el); if(!o) return; sv.disabled = true;
+    try{ await api('/tapi/jobs/'+j.id, o); toast('Laporan disimpan'); await loadJobs(); }catch(e){ if(e.message!=='401') toast(e.message); } sv.disabled = false; };
+  el.querySelectorAll('[data-st]').forEach(b => b.onclick = async () => {
+    const st = b.dataset.st;
+    if(st==='Gagal' && !confirm('Tandai pekerjaan ini GAGAL / tidak bisa diperbaiki?')) return;
+    if(st==='Selesai' && !confirm('Tandai pekerjaan ini SELESAI?')) return;
+    const o = det && det.open ? collect(el) : {}; if(o===null) return;
+    b.disabled = true;
+    try{ await api('/tapi/jobs/'+j.id, Object.assign(o, {status:st})); toast('Status: '+st); if(st==='Gagal'){ OPEN.add(j.id); } await loadJobs(); }
+    catch(e){ if(e.message!=='401') toast(e.message); b.disabled = false; }
+  });
+}
+function wireParts(el){
+  el.querySelectorAll('[data-delpart]').forEach(b=>b.onclick=()=>b.closest('.pr').remove());
+  el.querySelectorAll('[data-pv]').forEach(i=>i.oninput=()=>{ const d=i.value.replace(/\D/g,''); i.value = d ? Number(d).toLocaleString('id-ID') : ''; });
+}
+function typing(){ const a=document.activeElement; return a && /INPUT|TEXTAREA|SELECT/.test(a.tagName); }
+setInterval(async () => {
+  if(!ME || document.hidden || typing()) return;
+  try{ const j = await api('/tapi/jobs'); if(j.version !== VER){ const baru = j.jobs.filter(x=>!JOBS.some(y=>y.id===x.id)).length; JOBS=j.jobs; VER=j.version; render(); if(baru) toast(baru+' pekerjaan baru dari owner'); } }catch(_){}
+}, 8000);
+(async () => { try{ const m = await api('/tapi/me'); if(m.loggedIn){ ME=m.akun; await loadJobs(); } else renderLogin(); }catch(e){ if(e.message!=='401') renderLogin('Server teknisi belum siap. Coba lagi sebentar.'); } })();
+</script>
+</body>
+</html>
