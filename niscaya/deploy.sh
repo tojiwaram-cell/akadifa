@@ -1,7 +1,7 @@
 #!/bin/bash
 # NISCAYA MAKASSAR auto-deploy v2 — patch idempoten, menyatu dengan updater lama (/opt/niscaya/update.sh)
 set -u
-BASE="https://raw.githubusercontent.com/tojiwaram-cell/akadifa/main/niscaya"
+BASE="${NISCAYA_BASE:-https://raw.githubusercontent.com/tojiwaram-cell/akadifa/main/niscaya}"
 STATE=/var/lib/niscaya-deploy; PDIR=$STATE/patches; CONF=/etc/niscaya-deploy.conf
 mkdir -p "$STATE/backup" "$PDIR"
 ts(){ date '+%F %T'; }
@@ -44,3 +44,29 @@ for f in $FILES; do
 done
 rm -f "$STATE"/done-* 2>/dev/null
 ls -1t "$STATE"/backup/* 2>/dev/null | tail -n +21 | xargs -r rm -f
+# 6) pemantau cepat: cek version.txt tiap 5 detik (cron tiap menit), deploy penuh hanya jika versi berubah
+W=/usr/local/bin/niscaya-watch; tw=$(mktemp)
+cat > "$tw" <<'EOW'
+#!/bin/bash
+# NISCAYA watcher 5 detik — dipanggil cron tiap menit, berjalan ±58 detik
+exec 9>/var/lock/niscaya-watch.lock; flock -n 9 || exit 0
+BASE="${NISCAYA_BASE:-https://raw.githubusercontent.com/tojiwaram-cell/akadifa/main/niscaya}"
+S=/var/lib/niscaya-deploy; mkdir -p "$S"; LOG=/var/log/niscaya-deploy.log
+end=$(( $(date +%s) + 58 ))
+while [ "$(date +%s)" -lt "$end" ]; do
+  v=$(curl -fsS -m 4 "$BASE/version.txt?t=$(date +%s%N)" 2>/dev/null | tr -d '[:space:]' | head -c 100)
+  if [ -n "$v" ] && [ "$v" != "$(cat "$S/version.seen" 2>/dev/null)" ]; then
+    echo "$(date '+%F %T') versi baru $v terdeteksi" >> "$LOG"
+    if flock -w 50 /var/lock/niscaya-deploy.lock "${NISCAYA_DEPLOY:-/usr/local/bin/niscaya-deploy}" >> "$LOG" 2>&1; then echo "$v" > "$S/version.seen"; fi
+  fi
+  sleep 5
+done
+EOW
+if bash -n "$tw" && ! cmp -s "$tw" "$W"; then install -m 755 "$tw" "$W"; echo "$(ts) pemantau 5 detik dipasang"; fi
+rm -f "$tw"
+if [ -d /etc/cron.d ] && [ -z "${NISCAYA_BASE:-}" ]; then
+  C1='* * * * * root /usr/local/bin/niscaya-watch >/dev/null 2>&1'
+  [ "$(cat /etc/cron.d/niscaya-watch 2>/dev/null)" = "$C1" ] || { echo "$C1" > /etc/cron.d/niscaya-watch; chmod 644 /etc/cron.d/niscaya-watch; }
+  C2='*/10 * * * * root flock -n /var/lock/niscaya-deploy.lock /usr/local/bin/niscaya-deploy >> /var/log/niscaya-deploy.log 2>&1'
+  [ "$(cat /etc/cron.d/niscaya-deploy 2>/dev/null)" = "$C2" ] || { echo "$C2" > /etc/cron.d/niscaya-deploy; chmod 644 /etc/cron.d/niscaya-deploy; }
+fi
