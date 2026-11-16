@@ -41,3 +41,14 @@ Sumber: `niscaya/login-v4/nm.py`. Jalankan `python3 niscaya/login-v4/build_patch
 Banner ungu (owner & teknisi) menampilkan logo NISCAYA MAKASSAR di samping judul. Logo tidak disalin: layanan teknisi menyajikan
 `/tapi/logo` dari gambar `.brand-logo` di `/var/www/niscaya/index.html`, jadi bila logo aplikasi diganti, banner ikut berubah.
 Sumber: `login-v4/nm.py` (blok `.nm-hero`/`.nm-logo`) dan `teknisi/server.py` (`app_logo`).
+
+## Alur unit terjual (rilis 0023)
+- **QR label = tautan unit** `http://<server>/tapi/u/<ID>`. Discan kamera HP → halaman publik dengan status & harga terbaru
+  (Tersedia / Sudah dipesan / Sudah terjual + unit serupa). Label lama (teks) tetap terbaca oleh scanner aplikasi.
+- **Katalog online** `http://<server>/tapi/katalog` — hanya unit Ready; dicantumkan otomatis di teks Katalog WA beserta tanggal stok.
+- Aplikasi owner mengirim cuplikan stok tanpa data rahasia (tanpa modal, supplier, pembeli) ke `POST /tapi/owner/publik`
+  (sesi master wajib) tiap ada perubahan; disimpan di `/var/lib/niscaya-teknisi/publik.json`. Sumber halaman: `teknisi/server.py`.
+- Scan unit Sold/Booking/DP di aplikasi → peringatan besar. Halaman Label menyembunyikan unit Sold (bisa ditampilkan),
+  cetak label Sold minta konfirmasi. Kolom Sold di Kanban hanya bulan ini + tombol arsip. Data penjualan tidak pernah dihapus.
+- Sumber tampilan: `soldflow/soldflow.js` → `python3 niscaya/soldflow/build_patch.py` → `patches/0023-alur-terjual.py`.
+  Setelah mengubah `teknisi/server.py` jalankan `python3 niscaya/teknisi/build_patch.py`.
