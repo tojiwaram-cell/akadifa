@@ -1,0 +1,64 @@
+<svg viewBox="0 0 600 440" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+<defs>
+<linearGradient id="pvScr" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5b8def"/><stop offset="1" stop-color="#9cc0ff"/></linearGradient>
+<filter id="pvSh" x="-40%" y="-60%" width="180%" height="220%"><feDropShadow dx="0" dy="6" stdDeviation="7" flood-color="#3a1f8f" flood-opacity=".18"/></filter>
+</defs>
+<path d="M70 330C40 220 130 112 262 102 386 92 430 44 520 78 598 108 590 246 562 318 532 392 110 430 70 330Z" fill="#efedf8"/>
+<path d="M120 362H560" stroke="#e2e0ee" stroke-width="3" stroke-linecap="round"/>
+<!-- tumpukan laptop second -->
+<g>
+<rect x="452" y="336" width="104" height="14" rx="4" fill="#2f2a5a"/><rect x="456" y="338" width="96" height="3" rx="1.5" fill="#4a4380"/>
+<rect x="458" y="322" width="94" height="14" rx="4" fill="#8b5cf6"/><rect x="462" y="324" width="86" height="3" rx="1.5" fill="#b49bff"/>
+<rect x="464" y="308" width="84" height="14" rx="4" fill="#c9c6e2"/><rect x="468" y="310" width="76" height="3" rx="1.5" fill="#e6e4f3"/>
+<path d="M548 314l18 16" stroke="#2f2a5a" stroke-width="1.6"/>
+<g transform="rotate(14 572 340)"><rect x="552" y="328" width="44" height="22" rx="5" fill="#ffc727"/><circle cx="558" cy="339" r="2.4" fill="#fff"/><text x="564" y="343" font-size="9" font-weight="800" font-family="Plus Jakarta Sans,Arial" fill="#2b1a63">2nd</text></g>
+</g>
+<!-- kursi -->
+<rect x="150" y="206" width="13" height="96" rx="6.5" fill="#2f2a5a"/>
+<rect x="148" y="290" width="92" height="12" rx="6" fill="#3a3470"/>
+<path d="M196 302v48M168 352h56" stroke="#2f2a5a" stroke-width="6" stroke-linecap="round"/>
+<circle cx="168" cy="356" r="5" fill="#2f2a5a"/><circle cx="224" cy="356" r="5" fill="#2f2a5a"/>
+<!-- meja -->
+<rect x="250" y="248" width="290" height="10" rx="3" fill="#2f2a5a"/>
+<path d="M272 258v104M518 258v104" stroke="#2f2a5a" stroke-width="7" stroke-linecap="round"/>
+<path d="M440 258h70" stroke="#2f2a5a" stroke-width="5"/>
+<!-- tanaman -->
+<g transform="translate(244 0)"><ellipse cx="268" cy="206" rx="7" ry="20" transform="rotate(-24 268 206)" fill="#5b8def"/>
+<ellipse cx="286" cy="200" rx="7" ry="22" transform="rotate(18 286 200)" fill="#3f6fd8"/>
+<ellipse cx="277" cy="196" rx="6" ry="22" fill="#7aa6ff"/>
+<path d="M262 222h30l-4 26h-22z" fill="#ffc727"/>
+</g>
+<!-- laptop di meja -->
+<g filter="url(#pvSh)">
+<rect x="338" y="146" width="146" height="96" rx="8" fill="#2a2550"/>
+<rect x="345" y="153" width="132" height="81" rx="3" fill="url(#pvScr)"/>
+<path d="M324 240h174l-9 9H333z" fill="#3e3778"/>
+</g>
+<rect x="355" y="163" width="50" height="62" rx="5" fill="#fff"/>
+<rect x="364" y="173" width="32" height="20" rx="2" fill="#7c4ddb"/><rect x="367" y="176" width="26" height="14" rx="1" fill="#b49bff"/><path d="M360 193h40l-3 4h-34z" fill="#2a2550"/>
+<rect x="362" y="204" width="30" height="4" rx="2" fill="#2a2550"/><rect x="362" y="212" width="20" height="4" rx="2" fill="#c9c6e2"/>
+<rect x="414" y="166" width="54" height="5" rx="2.5" fill="#fff" opacity=".9"/><rect x="414" y="177" width="40" height="5" rx="2.5" fill="#fff" opacity=".6"/>
+<rect x="414" y="188" width="46" height="5" rx="2.5" fill="#fff" opacity=".6"/>
+<rect x="414" y="204" width="54" height="18" rx="9" fill="#ffc727"/><text x="421" y="216.5" font-size="9" font-weight="800" font-family="Plus Jakarta Sans,Arial" fill="#2b1a63">Rp 4,5jt</text>
+<!-- cangkir -->
+<g transform="translate(-14 60)"><rect x="500" y="228" width="18" height="20" rx="3" fill="#fff" stroke="#2f2a5a" stroke-width="2"/><path d="M518 233c8 0 8 10 0 10" fill="none" stroke="#2f2a5a" stroke-width="2"/>
+<path d="M505 220c-2-4 2-6 0-10M512 220c-2-4 2-6 0-10" stroke="#c9c6e2" stroke-width="2" stroke-linecap="round" fill="none"/>
+</g>
+<!-- orang -->
+<path d="M214 290h66" stroke="#2f2a5a" stroke-width="24" stroke-linecap="round"/>
+<path d="M282 292l-2 60" stroke="#2f2a5a" stroke-width="19" stroke-linecap="round"/>
+<path d="M270 352h30c6 0 10 4 10 9v3h-44v-6c0-3 2-6 4-6z" fill="#ffc727"/>
+<path d="M180 216c8-20 52-24 60-2l14 64c2 12-6 20-18 20h-38c-12 0-18-8-18-18z" fill="#7c4ddb"/>
+<path d="M232 220l24 26" stroke="#7c4ddb" stroke-width="15" stroke-linecap="round"/>
+<path d="M256 246l64-6" stroke="#f2b48c" stroke-width="10" stroke-linecap="round"/>
+<path d="M256 246l10-1" stroke="#6a3dd6" stroke-width="15" stroke-linecap="round"/>
+<rect x="203" y="190" width="14" height="20" rx="6" fill="#e9a57c"/>
+<circle cx="212" cy="176" r="21" fill="#f2b48c"/>
+<path d="M191 178c-4-26 14-34 28-33 18 1 26 14 22 26-8-6-18-8-28-5-2 8-8 12-14 14-2 0-6 0-8-2z" fill="#2a2550"/>
+<circle cx="200" cy="182" r="4" fill="#f2b48c"/>
+<!-- lencana -->
+<g filter="url(#pvSh)"><rect x="96" y="128" width="118" height="36" rx="18" fill="#fff"/><circle cx="116" cy="146" r="9" fill="#22a06b"/><path d="M112 146l3 3 6-6" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><text x="132" y="150" font-size="11" font-weight="700" font-family="Plus Jakarta Sans,Arial" fill="#1f1840">Unit Ready</text></g>
+<g filter="url(#pvSh)"><rect x="440" y="74" width="112" height="36" rx="18" fill="#fff"/><rect x="456" y="85" width="14" height="14" rx="2" fill="none" stroke="#6a3dd6" stroke-width="2"/><rect x="460" y="89" width="6" height="6" fill="#6a3dd6"/><text x="478" y="96" font-size="11" font-weight="700" font-family="Plus Jakarta Sans,Arial" fill="#1f1840">Label QR</text></g>
+<circle cx="88" cy="250" r="5" fill="#ffc727"/><circle cx="410" cy="50" r="4" fill="#9a6cf0"/><circle cx="574" cy="200" r="4" fill="#5b8def"/>
+<path d="M300 90l6 12M318 82l1 14M334 90l-5 11" stroke="#ffc727" stroke-width="3" stroke-linecap="round"/>
+</svg>

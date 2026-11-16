@@ -1,0 +1,16 @@
+
+/* ===== Logout v3: ungu & kuning, senada dengan halaman masuk ===== */
+#logoutDlg{background:rgba(52,22,130,.55)}
+#logoutDlg .lo-card{border-radius:16px}
+#logoutDlg .lo-card:before{background:linear-gradient(90deg,#6236d6,#9a6cf0)}
+#logoutDlg .lo-ico{background:#f1ebff;color:#6a3dd6}
+#logoutDlg h3{color:#1f1840}
+#logoutDlg h3 span:after{background:#ffc727}
+#logoutDlg button{border-radius:8px;border:1.5px solid #6a3dd6}
+#logoutDlg .lo-no{color:#6a3dd6}#logoutDlg .lo-no:hover{background:#f5f1ff}
+#logoutDlg .lo-yes{background:#ffc727;border-color:#ffc727;color:#2b1a63;text-transform:uppercase;letter-spacing:1px;font-weight:800}
+#logoutDlg .lo-yes:hover{background:#ffd34f}
+#logoutDlg{font-family:'Plus Jakarta Sans','Poppins',system-ui,sans-serif}
+#logoutDlg .lo-card:before{height:6px}
+#logoutDlg .lo-ico{border-radius:50%}
+#logoutDlg h3{font-weight:800}#logoutDlg h3 span{color:#1f1840}#logoutDlg h3 span:after{display:block}
