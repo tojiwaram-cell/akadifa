@@ -160,16 +160,16 @@ def img(u, cls="ph"):
 
 def mini(u):
     return ("<a class=\"it\" href=\"/tapi/u/%s\">%s<div class=\"pad\"><b>%s</b><span>%s</span><div class=\"pr\">%s</div></div></a>"
-            % (urllib.parse.quote(u["i"]), img(u), e(nama(u)), e(" · ".join(x for x in (u["p"], u["r"], u["d"]) if x)), rp(u["a"] or u["h"])))
+            % (urllib.parse.quote(u["i"]), img(u), e(nama(u)), e(" · ".join(x for x in (u["p"], u["r"], u["d"]) if x)), rp(u["a"] or u["h"]) if (u["a"] or u["h"]) else "Tanya harga"))
 
 def mirip(units, u, n=6):
-    ready = [x for x in units if x["s"] == "Ready" and (x["a"] or x["h"]) and x["i"] != (u or {}).get("i")]
+    ready = [x for x in units if x["s"] == "Ready" and x["i"] != (u or {}).get("i")]
     if not u: return ready[:n]
     harga = u["a"] or u["h"] or 0
     def skor(x):
         sk = 0 if x["m"].lower() == u["m"].lower() else 1
         hx = x["a"] or x["h"]
-        return (sk + (abs(hx - harga) / harga if harga else 1), hx)
+        return (sk + (abs(hx - harga) / harga if harga and hx else 1), hx or 10**12)
     return sorted(ready, key=skor)[:n]
 
 def page_unit(pub, u, uid):
@@ -186,7 +186,7 @@ def page_unit(pub, u, uid):
     if st == "Ready":
         chip = "<span class=\"chip ok\">✅ Tersedia</span>"
         harga = ("<div class=\"price\">%s%s</div>" % (("<span class=\"old\">%s</span>" % rp(u["h"])) if u["k"] and u["h"] > u["a"] else "", rp(u["a"] or u["h"]))) if (u["a"] or u["h"]) else ""
-        aksi = harga + "<a class=\"btn\" href=\"%s\">💬 Tanya / pesan unit ini via WhatsApp</a>" % e(wa("Halo %s, saya tertarik dengan unit %s (%s). Apakah masih tersedia?" % (TOKO, u["i"], nama(u))))
+        aksi = (harga or "<div class=\"price\" style=\"font-size:18px\">Harga: tanya via WhatsApp</div>") + "<a class=\"btn\" href=\"%s\">💬 Tanya / pesan unit ini via WhatsApp</a>" % e(wa("Halo %s, saya tertarik dengan unit %s (%s). Apakah masih tersedia?" % (TOKO, u["i"], nama(u))))
         lain, judul = mirip(units, u, 4), "Pilihan lain yang mirip"
     elif st in ("Booking", "DP"):
         chip = "<span class=\"chip bk\">🕓 Sudah dipesan</span>"
@@ -205,7 +205,7 @@ def page_unit(pub, u, uid):
     return shell(nama(u) + " · " + TOKO, body)
 
 def page_katalog(pub):
-    ready = sorted([x for x in pub["units"] if x["s"] == "Ready" and (x["a"] or x["h"])], key=lambda x: (x["m"].lower(), x["a"] or x["h"]))
+    ready = sorted([x for x in pub["units"] if x["s"] == "Ready"], key=lambda x: (x["m"].lower(), x["a"] or x["h"] or 10**12))
     merek = sorted({x["m"] for x in ready if x["m"]}, key=str.lower)
     data = json.dumps([[x["i"], (nama(x) + " " + x["p"] + " " + x["r"] + " " + x["d"]).lower(), x["m"], x["a"] or x["h"]] for x in ready], ensure_ascii=False).replace("</", "<\\/")
     body = ("<h1>Laptop tersedia (<span id=\"n\">%d</span>)</h1><p class=\"id\">Semua unit di halaman ini masih tersedia. Unit yang sudah dipesan atau terjual otomatis hilang.</p>"
@@ -215,7 +215,7 @@ def page_katalog(pub):
             "<script>(function(){var D=%s,g=document.getElementById('g'),q=document.getElementById('q'),mk=document.getElementById('mk'),so=document.getElementById('so'),n=document.getElementById('n');"
             "var el={};[].forEach.call(g.children,function(c,i){el[D[i][0]]=c});"
             "function f(){var t=q.value.toLowerCase().trim().split(/\\s+/),m=mk.value,o=so.value,L=D.filter(function(d){return(!m||d[2]===m)&&t.every(function(w){return d[1].indexOf(w)>=0})});"
-            "if(o)L=L.slice().sort(function(a,b){return o==='1'?a[3]-b[3]:b[3]-a[3]});[].forEach.call(g.children,function(c){c.style.display='none'});"
+            "if(o)L=L.slice().sort(function(a,b){var x=a[3]||(o==='1'?1e15:-1),y=b[3]||(o==='1'?1e15:-1);return o==='1'?x-y:y-x});[].forEach.call(g.children,function(c){c.style.display='none'});"
             "L.forEach(function(d){var c=el[d[0]];c.style.display='';g.appendChild(c)});n.textContent=L.length}q.oninput=f;mk.onchange=f;so.onchange=f})();</script>"
             % (len(ready), "".join("<option>%s</option>" % e(m) for m in merek), "".join(mini(x) for x in ready) or "<p>Belum ada data stok.</p>", e(tgl(pub.get("ts"))), data))
     return shell("Katalog laptop · " + TOKO, body)
