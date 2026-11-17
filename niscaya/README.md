@@ -88,3 +88,8 @@ Sumber: `dash2/dashfungsi.js` → `python3 niscaya/dash2/build_patch.py` → `pa
   judul kolom berwarna & terkunci, format Rupiah/tanggal, warna status, filter, link foto bisa diklik. Kolom tetap sama sehingga bisa diimpor ulang.
 - Sumber: `imporaman/imporaman.js` → `python3 niscaya/imporaman/build_patch.py` → `patches/0030-impor-aman.py`;
   endpoint di `teknisi/server.py` → `python3 niscaya/teknisi/build_patch.py`.
+## Total stok aktif di menu Supplier (rilis 0031)
+Tabel Supplier mendapat baris **⚠ Tanpa Supplier** (unit belum Sold yang kolom supplier-nya kosong) dan **⚠ Supplier tidak terdaftar**
+(nama supplier di unit tidak ada di daftar), masing-masing bisa diklik untuk melihat ID unit, plus baris **TOTAL STOK AKTIF** di bawah
+sehingga totalnya sama dengan Dashboard (semua unit selain Sold). Data tidak diubah — hanya tampilan (membungkus `renderSupplier`).
+Sumber: `suptotal/suptotal.js` → `python3 niscaya/suptotal/build_patch.py` → `patches/0031-supplier-total.py`.
