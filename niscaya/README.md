@@ -111,3 +111,10 @@ Cetak label memakai kertas label **No. 121 (38 × 75 mm, 10 label per lembar: 2 
 (margin 0), label mendatar: QR kiri, ID/tipe/spek/SN/harga kanan. Tombol **🏷 Label No.121** di halaman Label membuka pengaturan
 geser atas/kiri, jarak kolom/baris, garis tepi (disimpan di localStorage `nm-label121`) dan **Cetak uji garis** untuk kalibrasi di HVS.
 Hanya membungkus `printBarcodeLabels()`. Sumber: `label121/label121.js` → `python3 niscaya/label121/build_patch.py` → `patches/0034-label-121.py`.
+## Tema merah-putih (rilis 0035)
+Referensi: Pinterest pin 293296994506469195 ("Adlytics" AI Marketing Dashboard, versi terang): latar abu muda, sidebar & kartu putih
+bersudut 16px dengan garis tipis, menu aktif = pil merah, tombol utama merah, grafik gradasi merah, font Inter. Kartu Booking jadi kartu
+merah gradasi, Sudah DP kartu putih bergaris merah. Hanya CSS — data, menu dan fungsi tidak berubah; tampilan login & dashboard teknisi tidak disentuh.
+Blok `<style id="nm-tema-merah">` disisipkan sebelum `</body>` sehingga menimpa `theme-2026` (biru). Untuk kembali ke biru cukup
+keluarkan `0035-tema-merah.py` dari `patches.txt` dan hapus bloknya.
+Sumber: `tema-merah/tema.css` → `python3 niscaya/tema-merah/build_patch.py` → `patches/0035-tema-merah.py`.
