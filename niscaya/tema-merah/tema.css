@@ -170,3 +170,8 @@ select.search, input.search, .search{ background:#1E1A1E !important; color:#fff 
 .kquick:hover{ background:#FE2E4B !important; color:#fff !important; }
 .kid{ background:rgba(254,46,75,.14) !important; color:#FF8FA0 !important; border-color:rgba(254,46,75,.35) !important; }
 .kcard > div[style*="#fff4e5" i], .kcard [style*="background:#fff4e5" i]{ background:rgba(255,181,71,.14) !important; color:#FFC772 !important; }
+.file-drop{ background:rgba(254,46,75,.06) !important; border-color:rgba(254,46,75,.45) !important; color:#EDEAED !important; }
+.ktag.mkt{ color:#FF8FA0 !important; background:rgba(254,46,75,.14) !important; }
+.sf-arsip{ color:#CFCCCF !important; background:rgba(255,255,255,.05) !important; border-color:var(--nm-line-2) !important; }
+.toolbar label{ color:var(--text-dim) !important; }
+#content span[style*="#067647" i]{ color:#5BE59B !important; }
