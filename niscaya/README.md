@@ -76,3 +76,15 @@ Kartu Total/Ready/Booking/DP membuka Stok dengan filter status; Nilai Modal, Nil
 (klik baris = buka unit); "Isi sekarang" membuka pengisian harga jual/modal massal; Transaksi Terbaru membuka unit; baris tabel bulan memfilter
 bulan, baris tahun memilih tahun; kartu Omzet/Laba/Unit Terjual/Rata-rata membuka daftar penjualan periode terpilih.
 Sumber: `dash2/dashfungsi.js` → `python3 niscaya/dash2/build_patch.py` → `patches/0029-dashboard-fungsi.py`.
+## Impor aman + ekspor rapi (rilis 0030)
+- **Impor gabung pintar**: unit dicocokkan lewat ID (atau No Seri). ID baru → ditambahkan; ID lama → hanya kolom yang terisi yang diperbarui.
+  Tidak pernah diubah: status unit lama, DP, titipan & riwayat, penjualan lama, harga/biaya unit Sold. Sel kosong tidak menghapus data.
+  Penjualan hanya ditambah (unit harus sudah Sold); supplier/marketing baru ditambah, yang lama hanya diisi bila kosong.
+- **Pratinjau** sebelum simpan (unit baru / diperbarui beserta nilai lama→baru / dilewati + alasan).
+- **Cadangan VPS** otomatis sebelum impor & pemulihan: `POST /tapi/owner/backup` → `/var/lib/niscaya-teknisi/cadangan/` (30 terakhir);
+  bila VPS gagal, cadangan darurat di localStorage `niscaya-cadangan-lokal` (3 terakhir). Tombol **↩ Batalkan impor ini / Kembalikan**.
+- **Riwayat impor** `POST|GET /tapi/owner/log` → `/var/lib/niscaya-teknisi/impor-log.json` (300 terakhir), tampil di halaman Import/Export.
+- **Ekspor Excel rapi** (ExcelJS 4.4.0 dari cdnjs, cadangan SheetJS): sheet RINGKASAN + STOK LAPTOP, PENJUALAN, BIAYA UNIT, SUPPLIER, MARKETING;
+  judul kolom berwarna & terkunci, format Rupiah/tanggal, warna status, filter, link foto bisa diklik. Kolom tetap sama sehingga bisa diimpor ulang.
+- Sumber: `imporaman/imporaman.js` → `python3 niscaya/imporaman/build_patch.py` → `patches/0030-impor-aman.py`;
+  endpoint di `teknisi/server.py` → `python3 niscaya/teknisi/build_patch.py`.

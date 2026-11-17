@@ -116,6 +116,33 @@ def pub_load():
     except Exception: pass
     return {"ts": 0, "units": []}
 
+# ================= Cadangan & riwayat impor (rilis 0030) =================
+# Sebelum impor Excel / pemulihan, aplikasi owner mengirim salinan data lengkap ke sini (sesi master wajib).
+# Disimpan di STATE/cadangan/<id>.json (30 terakhir) + indeks; riwayat impor di STATE/impor-log.json (300 terakhir).
+BK_DIR = os.path.join(STATE, "cadangan")
+BK_IDX = os.path.join(BK_DIR, "index.json")
+LOGF = os.path.join(STATE, "impor-log.json")
+BK_LOCK = threading.Lock()
+BK_MAX, LOG_MAX = 30, 300
+
+def jload(p, dflt):
+    try:
+        with open(p, encoding="utf-8") as fh: return json.load(fh)
+    except Exception: return dflt
+
+def jsave(p, obj):
+    os.makedirs(os.path.dirname(p), exist_ok=True)
+    tmp = p + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as fh: json.dump(obj, fh, ensure_ascii=False)
+    os.replace(tmp, p)
+
+def bk_index():
+    idx = jload(BK_IDX, [])
+    return [x for x in idx if isinstance(x, dict) and os.path.exists(os.path.join(BK_DIR, str(x.get("id")) + ".json"))]
+
+def bk_meta(x):
+    return {k: x.get(k) for k in ("id", "ts", "jenis", "file", "catatan", "unit", "jual", "ukuran")}
+
 def e(v): return _html.escape(str(v if v is not None else ""), quote=True)
 def rp(v): return "Rp " + "{:,}".format(int(v or 0)).replace(",", ".")
 def tgl(ts):
@@ -254,6 +281,41 @@ class H(BaseHTTPRequestHandler):
         pub_save(clean)
         return self.send(200, {"ok": True, "jumlah": len(clean)})
 
+    # ---------------- cadangan & riwayat impor ----------------
+    def owner_backup(self, b):
+        data = b.get("data")
+        if not isinstance(data, dict) or not isinstance(data.get("stock"), list): return self.send(400, {"error": "Data cadangan tidak valid"})
+        bid = time.strftime("%Y%m%d-%H%M%S") + "-" + secrets.token_hex(3)
+        raw = json.dumps(data, ensure_ascii=False)
+        meta = {"id": bid, "ts": now(), "jenis": s(b.get("jenis"), 30) or "manual", "file": s(b.get("file"), 160), "catatan": s(b.get("catatan"), 300),
+                "unit": len(data.get("stock") or []), "jual": len(data.get("sales") or []), "ukuran": len(raw.encode())}
+        with BK_LOCK:
+            os.makedirs(BK_DIR, exist_ok=True)
+            tmp = os.path.join(BK_DIR, bid + ".json.tmp")
+            with open(tmp, "w", encoding="utf-8") as fh: fh.write(json.dumps({"meta": meta, "data": data}, ensure_ascii=False))
+            os.replace(tmp, os.path.join(BK_DIR, bid + ".json"))
+            idx = bk_index() + [meta]
+            while len(idx) > BK_MAX:
+                old = idx.pop(0)
+                try: os.remove(os.path.join(BK_DIR, str(old.get("id")) + ".json"))
+                except Exception: pass
+            jsave(BK_IDX, idx)
+        return self.send(200, {"ok": True, "id": bid, "meta": meta})
+
+    def owner_log(self, b):
+        rinc = b.get("rincian") if isinstance(b.get("rincian"), list) else []
+        ring = b.get("ringkasan") if isinstance(b.get("ringkasan"), dict) else {}
+        ent = {"id": secrets.token_hex(5), "ts": now(), "jenis": s(b.get("jenis"), 30) or "impor", "file": s(b.get("file"), 160),
+               "backupId": s(b.get("backupId"), 40), "judul": s(b.get("judul"), 200),
+               "ringkasan": {s(k, 40): num(v) for k, v in list(ring.items())[:20]},
+               "rincian": [s(x, 300) for x in rinc[:400]]}
+        with BK_LOCK:
+            lg = jload(LOGF, [])
+            if not isinstance(lg, list): lg = []
+            lg.append(ent); lg = lg[-LOG_MAX:]
+            jsave(LOGF, lg)
+        return self.send(200, {"ok": True, "id": ent["id"]})
+
     def body(self, limit=200000):
         n = int(self.headers.get("Content-Length") or 0)
         if n > limit: return None
@@ -311,6 +373,21 @@ class H(BaseHTTPRequestHandler):
             if not self.owner(): return self.send(401, {"error": "Khusus akun master"})
             with LOCK: d = load()
             return self.send(200, {"version": d["version"], "accounts": [public_acc(k, v) for k, v in d["accounts"].items()], "jobs": d["jobs"], "roles": ROLES})
+        if p == "/tapi/owner/backups":
+            if not self.owner(): return self.send(401, {"error": "Khusus akun master"})
+            with BK_LOCK: idx = bk_index()
+            return self.send(200, {"items": [bk_meta(x) for x in reversed(idx)]})
+        mb = re.match(r"^/tapi/owner/backup/([0-9a-f-]{10,40})$", p)
+        if mb:
+            if not self.owner(): return self.send(401, {"error": "Khusus akun master"})
+            d = jload(os.path.join(BK_DIR, mb.group(1) + ".json"), None)
+            if not d: return self.send(404, {"error": "Cadangan tidak ditemukan"})
+            return self.send(200, d)
+        if p == "/tapi/owner/log":
+            if not self.owner(): return self.send(401, {"error": "Khusus akun master"})
+            with BK_LOCK: lg = jload(LOGF, [])
+            if not isinstance(lg, list): lg = []
+            return self.send(200, {"items": list(reversed(lg))})
         if p == "/tapi/logo":
             lg = app_logo()
             if not lg["data"]: return self.send(404, {"error": "logo tidak ada"})
@@ -335,7 +412,7 @@ class H(BaseHTTPRequestHandler):
     # ---------------- POST ----------------
     def do_POST(self):
         p = self.path.split("?", 1)[0]
-        b = self.body(900000 if p == "/tapi/owner/publik" else 200000)
+        b = self.body(990000 if p in ("/tapi/owner/publik", "/tapi/owner/backup") else 200000)
         if b is None: return self.send(400, {"error": "Permintaan tidak valid"})
         if p == "/tapi/login": return self.login(b)
         if p == "/tapi/logout":
@@ -350,6 +427,8 @@ class H(BaseHTTPRequestHandler):
             if p == "/tapi/owner/job-delete": return self.owner_delete(b)
             if p == "/tapi/owner/account": return self.owner_account(b)
             if p == "/tapi/owner/publik": return self.owner_publik(b)
+            if p == "/tapi/owner/backup": return self.owner_backup(b)
+            if p == "/tapi/owner/log": return self.owner_log(b)
         return self.send(404, {"error": "tidak ditemukan"})
 
     def login(self, b):
