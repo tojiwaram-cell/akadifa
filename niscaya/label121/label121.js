@@ -1,10 +1,10 @@
-/*LABEL-121 v1*/
+/*LABEL-121 v2*/
 /* Cetak label QR ke kertas label No. 121 (38 x 75 mm, 10 label per lembar: 2 kolom x 5 baris).
    Membungkus printBarcodeLabels(): label yang dibuat aplikasi dikelompokkan per 10 ke halaman sendiri,
-   ditata mendatar (QR kiri, teks kanan). Posisi bisa disetel (geser atas/kiri, jarak kolom/baris) dan disimpan di
+   ditata seperti kartu di halaman Label (v2): QR berbingkai + ID di bawahnya di kiri; tipe, SN, spek, harga, status di kanan. Posisi bisa disetel (geser atas/kiri, jarak kolom/baris) dan disimpan di
    localStorage 'nm-label121'. Ada "Cetak uji garis" untuk kalibrasi di kertas HVS biasa. Data tidak diubah. */
 (function(){
-  if (typeof printBarcodeLabels !== 'function' || window.__nmLabel121) return;
+  if (typeof printBarcodeLabels !== 'function' || printBarcodeLabels.__nm121v2) return;
   window.__nmLabel121 = true;
   var KEY = 'nm-label121';
   var DEF = { top: 4, left: 6, gapX: 3, gapY: 2, garis: false };
@@ -27,21 +27,21 @@
         'grid-template-columns:repeat(' + COLS + ',' + W + 'mm);grid-template-rows:repeat(' + ROWS + ',' + H + 'mm);' +
         'column-gap:' + c.gapX + 'mm;row-gap:' + c.gapY + 'mm}' +
     '}' +
-    '#printArea .nm121-grid .print-label{width:' + W + 'mm!important;height:' + H + 'mm!important;max-width:none!important;min-height:0!important;' +
-      'margin:0!important;padding:2mm 2.2mm!important;box-sizing:border-box!important;overflow:hidden!important;' +
-      'display:grid!important;grid-template-columns:30mm 1fr!important;grid-auto-rows:min-content!important;column-gap:2mm!important;row-gap:0!important;' +
-      'align-content:center!important;text-align:left!important;border:' + (c.garis ? '0.2mm dashed #999' : '0') + '!important;border-radius:2.5mm!important;' +
-      'page-break-inside:avoid;break-inside:avoid;background:#fff!important;color:#000!important;font-family:Arial,Helvetica,sans-serif!important}' +
-    '#printArea .nm121-grid .print-label > *{grid-column:2!important;margin:0!important;padding:0!important;text-align:left!important;line-height:1.18!important;' +
-      'white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;max-width:100%!important;min-width:0!important}' +
-    '#printArea .nm121-grid .print-label > svg,#printArea .nm121-grid .print-label > img,#printArea .nm121-grid .print-label > canvas,#printArea .nm121-grid .print-label > .nm121-qr{' +
-      'grid-column:1!important;grid-row:1 / span 12!important;width:30mm!important;height:30mm!important;max-width:30mm!important;align-self:center!important;justify-self:center!important;display:block!important}' +
-    '#printArea .nm121-grid .print-label > .nm121-qr svg,#printArea .nm121-grid .print-label > .nm121-qr img{width:30mm!important;height:30mm!important;display:block}' +
-    '#printArea .nm121-grid .pl-brand{font-size:6.5pt!important;font-weight:700!important;letter-spacing:.4pt!important;color:#444!important;border-bottom:0.2mm solid #ccc!important;padding-bottom:0.5mm!important;margin-bottom:0.6mm!important}' +
-    '#printArea .nm121-grid .pl-id{font-size:11pt!important;font-weight:800!important;font-family:"Courier New",monospace!important}' +
-    '#printArea .nm121-grid .pl-model{font-size:8pt!important;font-weight:700!important;white-space:normal!important;max-height:2.4em!important}' +
-    '#printArea .nm121-grid .pl-spec{font-size:6.5pt!important;color:#222!important}' +
-    '#printArea .nm121-grid .pl-price{font-size:8.5pt!important;font-weight:800!important;margin-top:0.6mm!important;white-space:normal!important}' +
+    '#printArea .nm121-grid .nm-l{width:' + W + 'mm;height:' + H + 'mm;box-sizing:border-box;padding:2.5mm 3mm;display:flex;align-items:center;gap:3mm;overflow:hidden;' +
+      'background:#fff;color:#0f172a;font-family:Inter,"Segoe UI",Roboto,Arial,sans-serif;border-radius:2.5mm;border:' + (c.garis ? '0.2mm dashed #999' : '0') + ';' +
+      'page-break-inside:avoid;break-inside:avoid;-webkit-print-color-adjust:exact;print-color-adjust:exact}' +
+    '#printArea .nm-l-q{flex:none;width:25mm;display:flex;flex-direction:column;align-items:center}' +
+    '#printArea .nm-l-qb{width:25mm;height:25mm;box-sizing:border-box;padding:1.2mm;border:0.3mm solid #e2e8f0;border-radius:2mm;background:#fff;display:flex;align-items:center;justify-content:center}' +
+    '#printArea .nm-l-qb svg,#printArea .nm-l-qb img,#printArea .nm-l-qb canvas{width:100%!important;height:100%!important;display:block}' +
+    '#printArea .nm-l-id{margin-top:1mm;font:700 9pt/1 "Courier New",ui-monospace,monospace;letter-spacing:.6pt;color:#0f172a}' +
+    '#printArea .nm-l-t{flex:1;min-width:0;display:flex;flex-direction:column;gap:0.7mm}' +
+    '#printArea .nm-l-m{font-weight:800;font-size:11pt;line-height:1.12;color:#0f172a;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}' +
+    '#printArea .nm-l-s{font-size:7.5pt;line-height:1.15;color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}' +
+    '#printArea .nm-l-p{font:700 9pt/1.15 "Courier New",ui-monospace,monospace;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}' +
+    '#printArea .nm-l-p.tanya{color:#64748b}' +
+    '#printArea .nm-l-p s{display:block;font-weight:400;font-size:6.5pt;color:#94a3b8}' +
+    '#printArea .nm-l-b{align-self:flex-start;display:inline-flex;align-items:center;gap:1mm;margin-top:0.4mm;padding:0.6mm 2.4mm;border-radius:10mm;font-weight:700;font-size:7.5pt;line-height:1.2;border:0.25mm solid}' +
+    '#printArea .nm-l-b i{width:1.6mm;height:1.6mm;border-radius:50%;background:currentColor;display:inline-block}' +
     '#printArea .nm121-grid .nm121-box{width:' + W + 'mm;height:' + H + 'mm;box-sizing:border-box;border:0.25mm solid #000;border-radius:2.5mm;' +
       'display:flex;align-items:center;justify-content:center;font:8pt Arial,sans-serif;color:#555}';
   }
@@ -49,6 +49,34 @@
     var st = document.getElementById('nm121Css');
     if (!st){ st = document.createElement('style'); st.id = 'nm121Css'; document.head.appendChild(st); }
     st.textContent = css(cfg());
+  }
+
+  var ST = { Ready: ['#16a34a', '#ecfdf3', '#bbf7d0'], Booking: ['#b45309', '#fffbeb', '#fde68a'], DP: ['#7c3aed', '#f5f3ff', '#ddd6fe'], Sold: ['#64748b', '#f1f5f9', '#cbd5e1'] };
+  function E(v){ return String(v == null ? '' : v).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+  function txt(l, sel){ var e = l.querySelector(sel); return e ? e.textContent.trim() : ''; }
+  function Rp(n){ return (typeof rupiah === 'function') ? rupiah(n) : 'Rp ' + Math.round(n).toLocaleString('id-ID'); }
+  /* Satu label = kartu seperti di halaman Label */
+  function card(l){
+    var id = txt(l, '.pl-id'), s = null;
+    try { s = (DATA.stock || []).find(function(x){ return String(x.id) === id; }) || null; } catch (_) {}
+    var q = l.querySelector('svg, img, canvas');
+    var model = s ? [s.merek, s.tipe].filter(Boolean).join(' ') : txt(l, '.pl-model');
+    var sn = s ? (s.noSeri || '-') : ([].map.call(l.querySelectorAll('.pl-spec'), function(e){ return e.textContent.trim(); }).filter(function(t){ return /^SN:/.test(t); })[0] || '').replace(/^SN:\s*/, '');
+    var spec = s ? [s.processor || '-', s.ram || '-', s.ssd || '-'].join(' · ') : txt(l, '.pl-spec');
+    var price, tanya = false;
+    if (s){
+      var jual = Number(s.hargaJual) || 0, akhir = (typeof hargaAkhir === 'function') ? Number(hargaAkhir(s)) || 0 : Math.max(0, jual - (Number(s.diskon) || 0));
+      if (!akhir){ price = 'Tanya harga'; tanya = true; }
+      else price = ((Number(s.diskon) || 0) > 0 && jual > akhir ? '<s>' + E(Rp(jual)) + '</s>' : '') + E(Rp(akhir));
+    } else { price = E(txt(l, '.pl-price').replace(/^Harga Akhir:\s*/, '')); if (/Rp\s*0$|^$/.test(price)){ price = 'Tanya harga'; tanya = true; } }
+    var st = s && s.status, col = ST[st] || ST.Ready;
+    var d = document.createElement('div'); d.className = 'nm-l';
+    d.innerHTML = '<div class="nm-l-q"><div class="nm-l-qb"></div><div class="nm-l-id">' + E(id) + '</div></div>' +
+      '<div class="nm-l-t"><div class="nm-l-m">' + E(model) + '</div><div class="nm-l-s">SN: ' + E(sn) + '</div><div class="nm-l-s">' + E(spec) + '</div>' +
+      '<div class="nm-l-p' + (tanya ? ' tanya' : '') + '">' + price + '</div>' +
+      (st ? '<span class="nm-l-b" style="color:' + col[0] + ';background:' + col[1] + ';border-color:' + col[2] + '"><i></i>' + E(st) + '</span>' : '') + '</div>';
+    if (q) d.querySelector('.nm-l-qb').appendChild(q);
+    return d;
   }
 
   /* Kelompokkan .print-label hasil aplikasi ke halaman 10 label */
@@ -61,12 +89,7 @@
     for (var i = 0; i < labels.length; i += PER){
       var pg = document.createElement('div'); pg.className = 'nm121-page';
       var g = document.createElement('div'); g.className = 'nm121-grid';
-      labels.slice(i, i + PER).forEach(function(l){
-        /* QR yang dibungkus elemen lain tetap ditaruh di kolom kiri */
-        var q = l.querySelector(':scope > svg, :scope > img, :scope > canvas');
-        if (!q){ var inner = l.querySelector('svg, img, canvas'); if (inner && inner.parentNode !== l) inner.parentNode.classList.add('nm121-qr'); }
-        g.appendChild(l);
-      });
+      labels.slice(i, i + PER).forEach(function(l){ g.appendChild(card(l)); });
       pg.appendChild(g); frag.appendChild(pg);
     }
     pa.innerHTML = ''; pa.appendChild(frag);
@@ -81,7 +104,7 @@
     if (r && typeof r.then === 'function') return r.then(function(v){ go(); return v; });
     go(); return r;
   };
-  wrapped.__nm121 = true;
+  wrapped.__nm121 = true; wrapped.__nm121v2 = true;
   window.printBarcodeLabels = wrapped;
   try { printBarcodeLabels = wrapped; } catch (_) {}
 
@@ -104,7 +127,7 @@
       '<div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start">' +
         '<div style="width:170px;flex:none;background:#fffbe6;border:1px solid #e5d9a6;border-radius:6px;padding:6px;display:grid;grid-template-columns:1fr 1fr;grid-auto-rows:40px;gap:4px">' + cells + '</div>' +
         '<div style="flex:1;min-width:240px">' +
-          '<p class="dim" style="font-size:12.5px;line-height:1.55;margin:0 0 10px">Setiap 10 label = 1 lembar (2 kolom × 5 baris). QR di kiri, ID, tipe, spek, SN dan harga di kanan. ' +
+          '<p class="dim" style="font-size:12.5px;line-height:1.55;margin:0 0 10px">Setiap 10 label = 1 lembar (2 kolom × 5 baris). Tampilan sama dengan kartu di halaman Label: QR + ID di kiri, tipe, SN, spek, harga dan status di kanan. ' +
           'Saat mencetak pilih kertas <b>A4</b>, skala <b>100% / Default</b> (jangan "Fit to page"), margin <b>None</b>.</p>' +
           '<div class="form-grid">' +
             f('n121Top', 'Geser dari atas (mm)', c.top, 'Tambah bila cetakan terlalu ke atas') +
@@ -133,7 +156,8 @@
 
   /* Tombol di halaman Label, di samping tombol Cetak */
   function addBtn(){
-    var pb = document.getElementById('printBtn'); if (!pb || document.getElementById('n121Btn')) return;
+    var pb = document.getElementById('printBtn'); if (!pb) return;
+    var ex = document.getElementById('n121Btn'); if (ex){ ex.onclick = modal; return; }
     var b = document.createElement('button');
     b.className = 'btn btn-ghost'; b.id = 'n121Btn'; b.type = 'button'; b.style.marginRight = '8px';
     b.title = 'Atur posisi cetak di kertas label No. 121';
