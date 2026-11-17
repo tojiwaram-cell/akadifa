@@ -118,3 +118,8 @@ merah gradasi, Sudah DP kartu putih bergaris merah. Hanya CSS — data, menu dan
 Blok `<style id="nm-tema-merah">` disisipkan sebelum `</body>` sehingga menimpa `theme-2026` (biru). Untuk kembali ke biru cukup
 keluarkan `0035-tema-merah.py` dari `patches.txt` dan hapus bloknya.
 Sumber: `tema-merah/tema.css` → `python3 niscaya/tema-merah/build_patch.py` → `patches/0035-tema-merah.py`.
+## Tema gelap-merah "arounda" (rilis 0035 v4)
+Referensi: Pinterest pin 1096485840542224949 (palet arounda: #FE2E4B, #0F0E0E, #161316, #4B4A4B, #FFFFFF; latar hitam dengan cahaya
+gradasi merah, pil kaca, font Helvetica). Menggantikan isi blok `nm-tema-merah` (v3 merah-putih) — patch & mekanisme sama, cukup versi CSS berubah.
+Sidebar/header/kartu/panel kaca gelap, menu aktif & tombol utama = pil merah gradasi, kartu Booking & kartu sorot Harian merah gradasi, input/modal/Kanban gelap.
+Hanya CSS — data, menu dan fungsi tidak berubah; login & dashboard teknisi tidak disentuh. Untuk kembali ke merah-putih: ambil `tema.css` dari commit sebelum rilis ini.

@@ -5,7 +5,7 @@ D = os.path.dirname(os.path.abspath(__file__))
 css = open(os.path.join(D, "tema.css"), encoding="utf-8").read().strip()
 assert "</style" not in css.lower()
 tpl = r'''#!/usr/bin/env python3
-# NISCAYA MAKASSAR patch 0035: tema warna merah-putih (referensi Pinterest pin 293296994506469195).
+# NISCAYA MAKASSAR patch 0035: tema warna (v4: gelap-merah "arounda", referensi Pinterest pin 1096485840542224949; sebelumnya merah-putih pin 293296994506469195).
 # Hanya CSS tampilan; data & fungsi tidak disentuh. Idempoten: blok <style id="nm-tema-merah"> disisipkan
 # sebelum </body> (setelah tema-2026 sehingga menimpanya), atau diganti bila versinya berbeda.
 import sys, json, re
