@@ -19,3 +19,4 @@
 0030-impor-aman.py
 0031-supplier-total.py
 0033-penjualan-harian.py
+0034-label-121.py

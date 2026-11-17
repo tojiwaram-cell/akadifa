@@ -106,3 +106,8 @@ Panel **📅 Penjualan Harian** (di atas "Omzet & Laba"): kartu Hari ini (dengan
 (unit, omzet, laba + nama laptop) dengan baris TOTAL. Pilih bulan lewat ‹ › atau kotak bulan. Klik batang/baris = rincian penjualan hari itu
 (klik unit = buka unit). Angka memakai `sumSales()` yang sama dengan Dashboard. Hanya tampilan (membungkus `renderDashboard`).
 Sumber: `harian/harian.js` → `python3 niscaya/harian/build_patch.py` → `patches/0033-penjualan-harian.py`.
+## Label QR kertas No. 121 (rilis 0034)
+Cetak label memakai kertas label **No. 121 (38 × 75 mm, 10 label per lembar: 2 kolom × 5 baris)**. Setiap 10 label jadi satu halaman A4
+(margin 0), label mendatar: QR kiri, ID/tipe/spek/SN/harga kanan. Tombol **🏷 Label No.121** di halaman Label membuka pengaturan
+geser atas/kiri, jarak kolom/baris, garis tepi (disimpan di localStorage `nm-label121`) dan **Cetak uji garis** untuk kalibrasi di HVS.
+Hanya membungkus `printBarcodeLabels()`. Sumber: `label121/label121.js` → `python3 niscaya/label121/build_patch.py` → `patches/0034-label-121.py`.
