@@ -93,3 +93,10 @@ Tabel Supplier mendapat baris **⚠ Tanpa Supplier** (unit belum Sold yang kolom
 (nama supplier di unit tidak ada di daftar), masing-masing bisa diklik untuk melihat ID unit, plus baris **TOTAL STOK AKTIF** di bawah
 sehingga totalnya sama dengan Dashboard (semua unit selain Sold). Data tidak diubah — hanya tampilan (membungkus `renderSupplier`).
 Sumber: `suptotal/suptotal.js` → `python3 niscaya/suptotal/build_patch.py` → `patches/0031-supplier-total.py`.
+## QR tampilkan SN + harga modal/akhir khusus owner (rilis 0032)
+- Halaman QR `/tapi/u/<ID>` kini menampilkan **Tipe laptop, SN (No Seri), spek, harga akhir** untuk semua orang
+  (cuplikan publik membawa field `n` = No Seri; `soldflow.js` v4).
+- Bila yang membuka adalah **owner yang sedang login** di browser HP yang sama (sesi master), muncul kartu **🔒 Khusus owner**:
+  harga modal, biaya service/part, total modal, harga jual normal & diskon, **harga akhir**, perkiraan untung, supplier.
+  Data rahasia diambil langsung dari `/api/data` dengan cookie owner saat halaman dibuka — tidak pernah disimpan di `publik.json`,
+  jadi pembeli yang men-scan tidak melihat modal. Sumber: `teknisi/server.py` (`owner_unit`, `owner_card`).

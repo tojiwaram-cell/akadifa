@@ -99,7 +99,7 @@ def pub_clean(x):
     f = s(x.get("f"), 800)
     return {"i": s(x.get("i"), 60), "m": s(x.get("m"), 60), "t": s(x.get("t"), 120), "p": s(x.get("p"), 80), "r": s(x.get("r"), 40),
             "d": s(x.get("d"), 60), "l": s(x.get("l"), 60), "v": s(x.get("v"), 80), "h": n(x.get("h")), "k": n(x.get("k")), "a": n(x.get("a")),
-            "s": s(x.get("s"), 20), "f": f if re.match(r"^https?://", f, re.I) else "", "j": s(x.get("j"), 10)}
+            "s": s(x.get("s"), 20), "f": f if re.match(r"^https?://", f, re.I) else "", "j": s(x.get("j"), 10), "n": s(x.get("n"), 60)}
 
 def pub_save(units):
     with PUB_LOCK:
@@ -173,6 +173,8 @@ table{width:100%;border-collapse:collapse;margin-top:12px}td{padding:8px 0;borde
 .it .pad{padding:10px}.it b{font-size:14px;display:block}.it span{font-size:12px;color:#6b6f85;display:block;margin-top:3px}.it .pr{color:#4c2bd9;font-weight:800;font-size:15px;margin-top:6px}
 .foot{color:#8a8fa6;font-size:12px;text-align:center;margin:22px 0 10px}.bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
 .bar input,.bar select{flex:1;min-width:150px;padding:11px 12px;border:1px solid #d9dcea;border-radius:10px;font-size:15px;background:#fff}
+.own{background:#f5f3ff;border:2px solid #7b3fe4;border-radius:14px;padding:12px 14px;margin-top:14px}.ownh{font-weight:800;color:#4c2bd9}.ownh small{font-weight:500;color:#6b6f85}
+.own table{margin-top:6px}.own td{border-bottom-color:#e4defc}
 @media(min-width:760px){.two{display:grid;grid-template-columns:1.1fr 1fr;gap:0}.two .ph,.two .noph{height:100%;aspect-ratio:auto;min-height:340px}}"""
 
 def shell(title, body):
@@ -199,7 +201,30 @@ def mirip(units, u, n=6):
         return (sk + (abs(hx - harga) / harga if harga and hx else 1), hx or 10**12)
     return sorted(ready, key=skor)[:n]
 
-def page_unit(pub, u, uid):
+# Rilis 0032: bila yang membuka tautan QR adalah owner yang sedang login (sesi master di browser yang sama),
+# halaman unit menampilkan kartu "Khusus owner" berisi harga modal, biaya, harga akhir & perkiraan untung.
+# Data rahasia diambil langsung dari /api/data saat itu juga (tidak pernah disimpan di publik.json).
+def own_to_pub(o):
+    return pub_clean({"i": o.get("id"), "m": o.get("merek"), "t": o.get("tipe"), "p": o.get("processor"), "r": o.get("ram"), "d": o.get("ssd"),
+                      "l": o.get("layar"), "v": o.get("vga"), "h": o.get("hargaJual"), "k": o.get("diskon"),
+                      "a": max(0, num(o.get("hargaJual")) - num(o.get("diskon"))), "s": o.get("status"), "f": o.get("linkFoto"), "n": o.get("noSeri")})
+
+def owner_card(u, o):
+    modal = num(o.get("hargaModal")); biaya = sum(num(b.get("nominal")) for b in (o.get("biaya") or []) if isinstance(b, dict))
+    jual = num(o.get("hargaJual")); disk = num(o.get("diskon"))
+    akhir = (u or {}).get("a") or max(0, jual - disk)
+    tot = modal + biaya; untung = akhir - tot if akhir else None
+    rows = [("Harga modal", rp(modal) if modal else "-")]
+    if biaya: rows += [("Biaya service/part", rp(biaya)), ("Total modal", rp(tot))]
+    if disk and jual: rows += [("Harga jual normal", rp(jual)), ("Diskon", "− " + rp(disk))]
+    rows.append(("<b>Harga akhir</b>", "<b>%s</b>" % (rp(akhir) if akhir else "Belum diisi")))
+    if untung is not None: rows.append(("Perkiraan untung", "<b style=\"color:%s\">%s%s</b>" % ("#15803d" if untung >= 0 else "#dc2626", "− " if untung < 0 else "", rp(abs(untung)))))
+    if o.get("supplier"): rows.append(("Supplier", e(o.get("supplier"))))
+    return ("<div class=\"own\"><div class=\"ownh\">🔒 Khusus owner <small>— hanya tampil karena Anda sedang login</small></div><table>%s</table></div>"
+            % "".join("<tr><td>%s</td><td>%s</td></tr>" % r for r in rows))
+
+def page_unit(pub, u, uid, own=None):
+    if own and not u: u = own_to_pub(own)
     units = pub["units"]; upd = "<div class=\"foot\">Data stok diperbarui %s</div>" % e(tgl(pub.get("ts")))
     kat = "<a class=\"btn alt\" href=\"/tapi/katalog\">Lihat semua laptop yang tersedia</a>"
     if not u:
@@ -209,7 +234,7 @@ def page_unit(pub, u, uid):
         return shell("Unit tidak ditemukan · " + TOKO, body)
     st = u["s"]
     spek = "".join("<tr><td>%s</td><td>%s</td></tr>" % (k, e(v)) for k, v in
-                   (("Merek", u["m"]), ("Tipe", u["t"]), ("Prosesor", u["p"]), ("RAM", u["r"]), ("Penyimpanan", u["d"]), ("Layar", u["l"]), ("VGA", u["v"])) if v)
+                   (("Merek", u["m"]), ("Tipe laptop", u["t"]), ("SN", u.get("n") or "-"), ("Prosesor", u["p"]), ("RAM", u["r"]), ("Penyimpanan", u["d"]), ("Layar", u["l"]), ("VGA", u["v"])) if v)
     if st == "Ready":
         chip = "<span class=\"chip ok\">✅ Tersedia</span>"
         harga = ("<div class=\"price\">%s%s</div>" % (("<span class=\"old\">%s</span>" % rp(u["h"])) if u["k"] and u["h"] > u["a"] else "", rp(u["a"] or u["h"]))) if (u["a"] or u["h"]) else ""
@@ -225,8 +250,8 @@ def page_unit(pub, u, uid):
         aksi = ("<div class=\"note red\">Maaf, unit ini <b>sudah terjual</b>. Lihat laptop serupa yang masih tersedia di bawah, atau tanyakan stok terbaru ke kami.</div>"
                 "<a class=\"btn\" href=\"%s\">💬 Cari unit serupa via WhatsApp</a>" % e(wa("Halo %s, unit %s (%s) sudah terjual. Ada unit serupa yang masih tersedia?" % (TOKO, u["i"], nama(u)))))
         lain, judul = mirip(units, u, 6), "Unit serupa yang masih tersedia"
-    body = ("<div class=\"card two\">%s<div class=\"pad\">%s<h1>%s</h1><div class=\"id\">Kode unit: %s</div><table>%s</table>%s</div></div>"
-            % (img(u), chip, e(nama(u)), e(u["i"]), spek, aksi))
+    body = ("<div class=\"card two\">%s<div class=\"pad\">%s<h1>%s</h1><div class=\"id\">Kode unit: %s</div><table>%s</table>%s%s</div></div>"
+            % (img(u), chip, e(nama(u)), e(u["i"]), spek, owner_card(u, own) if own else "", aksi))
     if lain: body += "<h2>%s</h2><div class=\"grid\">%s</div>" % (judul, "".join(mini(x) for x in lain))
     body += kat + upd
     return shell(nama(u) + " · " + TOKO, body)
@@ -354,6 +379,18 @@ class H(BaseHTTPRequestHandler):
         OWNER_CACHE[k] = (ok, now() + 30)
         return ok
 
+    def owner_unit(self, uid):
+        """Data lengkap unit dari /api/data memakai cookie master pembuka halaman; None bila bukan owner / gagal."""
+        raw = "; ".join(p for p in (self.headers.get("Cookie") or "").split(";") if not p.strip().startswith("tsess="))
+        if not raw.strip() or not self.owner(): return None
+        try:
+            req = urllib.request.Request(MASTER + "/api/data", headers={"Cookie": raw, "Host": self.headers.get("Host") or "localhost"})
+            with urllib.request.urlopen(req, timeout=5) as r: j = json.loads(r.read() or b"{}")
+            st = ((j.get("data") if isinstance(j.get("data"), dict) else j) or {}).get("stock") or []
+            return next((x for x in st if isinstance(x, dict) and str(x.get("id", "")).lower() == uid.lower()), None)
+        except Exception:
+            return None
+
     # ---------------- GET ----------------
     def do_GET(self):
         p = self.path.split("?", 1)[0]
@@ -403,7 +440,8 @@ class H(BaseHTTPRequestHandler):
         if m:
             uid = urllib.parse.unquote(m.group(1))
             pub = pub_load(); u = next((x for x in pub["units"] if x["i"].lower() == uid.lower()), None)
-            return self.html(200 if u else 404, page_unit(pub, u, uid))
+            own = self.owner_unit(uid)
+            return self.html(200 if (u or own) else 404, page_unit(pub, u, uid, own))
         if p == "/tapi/version":
             with LOCK: d = load()
             return self.send(200, {"version": d["version"]})

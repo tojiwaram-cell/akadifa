@@ -1,10 +1,11 @@
-/*SOLDFLOW v3*/
+/*SOLDFLOW v4*/
 /* Rilis 0023 — alur unit terjual:
    - QR label berisi tautan /tapi/u/<ID> (status & harga selalu terbaru); label lama (teks) tetap terbaca
    - Scan unit Sold/Booking/DP memunculkan peringatan besar
    - Halaman Label: unit Sold disembunyikan (bisa ditampilkan), cetak label Sold minta konfirmasi
    - Kanban: kolom Sold hanya bulan ini + tombol arsip (data tidak dihapus)
    - Katalog WA: tanggal stok + link katalog online
+   - v4 (rilis 0032): cuplikan publik ikut membawa No Seri (SN) untuk halaman QR
    - Cuplikan stok publik (tanpa modal/supplier/pembeli) dikirim ke server untuk halaman QR & katalog online */
 (function(){
   if(window.__soldFlow) return; window.__soldFlow = 1;
@@ -167,7 +168,7 @@
       var x = s.status === 'Sold' ? saleOf(s.id) : null, ha = 0;
       try{ ha = Number(hargaAkhir(s)) || 0; }catch(_){ ha = Math.max(0, (Number(s.hargaJual)||0) - (Number(s.diskon)||0)); }
       return { i:String(s.id), m:s.merek||'', t:s.tipe||'', p:s.processor||'', r:s.ram||'', d:s.ssd||'', l:s.layar||'', v:s.vga||'',
-               h:Number(s.hargaJual)||0, k:Number(s.diskon)||0, a:ha, s:s.status||'', f:/^https?:\/\//i.test(s.linkFoto||'') ? s.linkFoto : '', j:(x && x.tanggal) || '' };
+               h:Number(s.hargaJual)||0, k:Number(s.diskon)||0, a:ha, s:s.status||'', f:/^https?:\/\//i.test(s.linkFoto||'') ? s.linkFoto : '', j:(x && x.tanggal) || '', n:s.noSeri||'' };
     });
   }
   async function publish(){
