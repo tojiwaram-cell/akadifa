@@ -1,4 +1,4 @@
-/*TEMA-MERAH v1*/
+/*TEMA-MERAH v2*/
 /* Tema merah-putih gaya "Adlytics" (referensi Pinterest pin 293296994506469195).
    Hanya warna & tampilan — data, menu, tombol dan fungsi tidak diubah. Menimpa tema-2026 (biru). */
 :root{
@@ -118,3 +118,7 @@ input:focus, select:focus, textarea:focus{ border-color:#F3A3A6 !important; box-
 #nmHarianPanel div[style*="background:#eef4ff"]{ background:#F7F7F9 !important; border:1px solid #ECECEF; }
 #nmHarianPanel div[style*="background:#ecfdf5"]{ background:#fff !important; border:1px solid #F6C4C6; }
 #nmHarianPanel div[style*="background:#ecfdf5"] .mono{ color:#E3141B; }
+/* Bilah pencarian/filter yang menempel saat scroll */
+.toolbar{ background:rgba(244,244,246,.96) !important; box-shadow:none !important; border-color:transparent !important; }
+.toolbar::before{ background:rgba(244,244,246,.96) !important; }
+.toolbar .search, .toolbar input, .toolbar select{ background:#fff !important; border:1px solid #E6E6EA !important; }
