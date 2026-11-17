@@ -1,4 +1,4 @@
-/*TEMA-MERAH v4 arounda*/
+/*TEMA-MERAH v4.1 arounda*/
 /* Tema gelap merah gaya "arounda" (referensi Pinterest pin 1096485840542224949).
    Palet: #FE2E4B (merah), #0F0E0E, #161316, #4B4A4B, #FFFFFF; latar hitam dengan cahaya gradasi merah, pil kaca, font Helvetica.
    Hanya warna & tampilan — data, menu, tombol dan fungsi tidak diubah. Menimpa tema-2026 (biru). */
@@ -109,12 +109,12 @@ tr.model-head td{ background:#1A161A !important; color:#fff; }
 .badge-warn{ background:rgba(254,46,75,.14) !important; color:#FF6F84 !important; border-color:rgba(254,46,75,.4) !important; }
 
 /* Input, toggle, filter */
-input, select, textarea, .field input, .field select, .field textarea, .panel select, .modal input, .modal select, .modal textarea{ background:#1E1A1E !important; color:#fff !important; border-color:rgba(255,255,255,.14) !important; }
-input::placeholder, textarea::placeholder{ color:#7A777A !important; }
-input:focus, select:focus, textarea:focus{ border-color:#FE2E4B !important; box-shadow:0 0 0 3px rgba(254,46,75,.22) !important; }
+input:not(#loginOverlay input), select:not(#loginOverlay select), textarea:not(#loginOverlay textarea), .field input, .field select, .field textarea, .panel select, .modal input, .modal select, .modal textarea{ background:#1E1A1E !important; color:#fff !important; border-color:rgba(255,255,255,.14) !important; }
+#app input::placeholder, #content input::placeholder, .modal input::placeholder, textarea::placeholder{ color:#7A777A !important; }
+input:not(#loginOverlay input):focus, select:focus, textarea:focus{ border-color:#FE2E4B !important; box-shadow:0 0 0 3px rgba(254,46,75,.22) !important; }
 input[type=checkbox], input[type=radio]{ accent-color:#FE2E4B; }
 option{ background:#161316; color:#fff; }
-label, .field label{ color:var(--text-dim); }
+#content label, .modal label, .field label{ color:var(--text-dim); }
 .view-toggle{ background:rgba(255,255,255,.05) !important; border-color:var(--nm-line-2) !important; box-shadow:none !important; border-radius:999px; }
 .view-toggle button{ color:#CFCCCF; border-radius:999px; }
 .view-toggle button.active{ background:#FE2E4B !important; color:#fff !important; }
