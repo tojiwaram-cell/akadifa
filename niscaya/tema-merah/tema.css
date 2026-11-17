@@ -164,3 +164,9 @@ select.search, input.search, .search{ background:#1E1A1E !important; color:#fff 
 #syncBadge{ background:rgba(22,19,22,.9) !important; color:#EDEAED !important; border:1px solid var(--nm-line-2) !important; box-shadow:0 10px 26px rgba(0,0,0,.45) !important; backdrop-filter:blur(12px); }
 #syncBadge button, #syncBadge .btn{ background:#FE2E4B !important; color:#fff !important; border-color:#FE2E4B !important; }
 #content span[style*="#fff3e0" i], .modal span[style*="#fff3e0" i]{ background:rgba(255,181,71,.16) !important; color:#FFC772 !important; }
+/* Kanban: penghitung, tombol cepat, ID kartu */
+.list-header .count{ background:rgba(254,46,75,.18) !important; color:#FF8FA0 !important; border:1px solid rgba(254,46,75,.35) !important; }
+.kquick{ background:rgba(255,255,255,.05) !important; color:#FF8FA0 !important; border:1px solid var(--nm-line-2) !important; border-radius:999px; }
+.kquick:hover{ background:#FE2E4B !important; color:#fff !important; }
+.kid{ background:rgba(254,46,75,.14) !important; color:#FF8FA0 !important; border-color:rgba(254,46,75,.35) !important; }
+.kcard > div[style*="#fff4e5" i], .kcard [style*="background:#fff4e5" i]{ background:rgba(255,181,71,.14) !important; color:#FFC772 !important; }
