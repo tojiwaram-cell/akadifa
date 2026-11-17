@@ -1,18 +1,19 @@
-/*LABEL-121 v2*/
+/*LABEL-121 v3*/
 /* Cetak label QR ke kertas label No. 121 (38 x 75 mm, 10 label per lembar: 2 kolom x 5 baris).
    Membungkus printBarcodeLabels(): label yang dibuat aplikasi dikelompokkan per 10 ke halaman sendiri,
-   ditata seperti kartu di halaman Label (v2): QR berbingkai + ID di bawahnya di kiri; tipe, SN, spek, harga, status di kanan. Posisi bisa disetel (geser atas/kiri, jarak kolom/baris) dan disimpan di
+   ditata seperti kartu di halaman Label (v2): QR berbingkai + ID di bawahnya di kiri; tipe, SN, spek, harga di kanan (v3: tanpa status). Posisi bisa disetel (geser atas/kiri, jarak kolom/baris) dan disimpan di
    localStorage 'nm-label121'. Ada "Cetak uji garis" untuk kalibrasi di kertas HVS biasa. Data tidak diubah. */
 (function(){
   if (typeof printBarcodeLabels !== 'function' || printBarcodeLabels.__nm121v2) return;
   window.__nmLabel121 = true;
   var KEY = 'nm-label121';
-  var DEF = { top: 4, left: 6, gapX: 3, gapY: 2, garis: false };
+  var DEF = { ver: 3, top: 4, left: 26, gapX: 4, gapY: 4, garis: false };
   function cfg(){
     var o = {}; try { o = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (_) {}
+    if (o.ver !== DEF.ver) o = {}; /* v3: posisi baru hasil cetak uji (geser kanan ±2 cm, jarak baris/kolom 4 mm) */
     var r = {}; for (var k in DEF) r[k] = (o[k] === undefined || o[k] === null || o[k] === '') ? DEF[k] : o[k];
     ['top','left','gapX','gapY'].forEach(function(k){ r[k] = Number(r[k]); if (!isFinite(r[k])) r[k] = DEF[k]; });
-    r.garis = !!r.garis; return r;
+    r.garis = !!r.garis; r.ver = DEF.ver; return r;
   }
   function save(o){ try { localStorage.setItem(KEY, JSON.stringify(o)); } catch (_) {} }
   var W = 75, H = 38, COLS = 2, ROWS = 5, PER = COLS * ROWS;
@@ -69,12 +70,10 @@
       if (!akhir){ price = 'Tanya harga'; tanya = true; }
       else price = ((Number(s.diskon) || 0) > 0 && jual > akhir ? '<s>' + E(Rp(jual)) + '</s>' : '') + E(Rp(akhir));
     } else { price = E(txt(l, '.pl-price').replace(/^Harga Akhir:\s*/, '')); if (/Rp\s*0$|^$/.test(price)){ price = 'Tanya harga'; tanya = true; } }
-    var st = s && s.status, col = ST[st] || ST.Ready;
     var d = document.createElement('div'); d.className = 'nm-l';
     d.innerHTML = '<div class="nm-l-q"><div class="nm-l-qb"></div><div class="nm-l-id">' + E(id) + '</div></div>' +
       '<div class="nm-l-t"><div class="nm-l-m">' + E(model) + '</div><div class="nm-l-s">SN: ' + E(sn) + '</div><div class="nm-l-s">' + E(spec) + '</div>' +
-      '<div class="nm-l-p' + (tanya ? ' tanya' : '') + '">' + price + '</div>' +
-      (st ? '<span class="nm-l-b" style="color:' + col[0] + ';background:' + col[1] + ';border-color:' + col[2] + '"><i></i>' + E(st) + '</span>' : '') + '</div>';
+      '<div class="nm-l-p' + (tanya ? ' tanya' : '') + '">' + price + '</div></div>';
     if (q) d.querySelector('.nm-l-qb').appendChild(q);
     return d;
   }
@@ -127,7 +126,7 @@
       '<div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start">' +
         '<div style="width:170px;flex:none;background:#fffbe6;border:1px solid #e5d9a6;border-radius:6px;padding:6px;display:grid;grid-template-columns:1fr 1fr;grid-auto-rows:40px;gap:4px">' + cells + '</div>' +
         '<div style="flex:1;min-width:240px">' +
-          '<p class="dim" style="font-size:12.5px;line-height:1.55;margin:0 0 10px">Setiap 10 label = 1 lembar (2 kolom × 5 baris). Tampilan sama dengan kartu di halaman Label: QR + ID di kiri, tipe, SN, spek, harga dan status di kanan. ' +
+          '<p class="dim" style="font-size:12.5px;line-height:1.55;margin:0 0 10px">Setiap 10 label = 1 lembar (2 kolom × 5 baris). Tampilan sama dengan kartu di halaman Label: QR + ID di kiri, tipe, SN, spek dan harga di kanan. ' +
           'Saat mencetak pilih kertas <b>A4</b>, skala <b>100% / Default</b> (jangan "Fit to page"), margin <b>None</b>.</p>' +
           '<div class="form-grid">' +
             f('n121Top', 'Geser dari atas (mm)', c.top, 'Tambah bila cetakan terlalu ke atas') +
@@ -145,7 +144,7 @@
         '<button class="btn btn-primary" id="n121Simpan">Simpan</button>' +
       '</div>';
     ov.classList.add('show');
-    function read(){ return { top: +box.querySelector('#n121Top').value || 0, left: +box.querySelector('#n121Left').value || 0,
+    function read(){ return { ver: DEF.ver, top: +box.querySelector('#n121Top').value || 0, left: +box.querySelector('#n121Left').value || 0,
       gapX: +box.querySelector('#n121GapX').value || 0, gapY: +box.querySelector('#n121GapY').value || 0, garis: box.querySelector('#n121Garis').checked }; }
     box.querySelector('#n121Tutup').onclick = function(){ ov.classList.remove('show'); };
     box.querySelector('#n121Simpan').onclick = function(){ save(read()); setCss(); ov.classList.remove('show'); if (typeof showToast === 'function') showToast('Pengaturan label No. 121 disimpan'); };
