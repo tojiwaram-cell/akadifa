@@ -109,7 +109,7 @@ tr.model-head td{ background:#1A161A !important; color:#fff; }
 .badge-warn{ background:rgba(254,46,75,.14) !important; color:#FF6F84 !important; border-color:rgba(254,46,75,.4) !important; }
 
 /* Input, toggle, filter */
-input, select, textarea{ background:#1E1A1E !important; color:#fff !important; border-color:rgba(255,255,255,.14) !important; }
+input, select, textarea, .field input, .field select, .field textarea, .panel select, .modal input, .modal select, .modal textarea{ background:#1E1A1E !important; color:#fff !important; border-color:rgba(255,255,255,.14) !important; }
 input::placeholder, textarea::placeholder{ color:#7A777A !important; }
 input:focus, select:focus, textarea:focus{ border-color:#FE2E4B !important; box-shadow:0 0 0 3px rgba(254,46,75,.22) !important; }
 input[type=checkbox], input[type=radio]{ accent-color:#FE2E4B; }
