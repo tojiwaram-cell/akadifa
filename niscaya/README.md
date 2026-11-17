@@ -100,3 +100,9 @@ Sumber: `suptotal/suptotal.js` → `python3 niscaya/suptotal/build_patch.py` →
   harga modal, biaya service/part, total modal, harga jual normal & diskon, **harga akhir**, perkiraan untung, supplier.
   Data rahasia diambil langsung dari `/api/data` dengan cookie owner saat halaman dibuka — tidak pernah disimpan di `publik.json`,
   jadi pembeli yang men-scan tidak melihat modal. Sumber: `teknisi/server.py` (`owner_unit`, `owner_card`).
+## Penjualan Harian di Dashboard (rilis 0033)
+Panel **📅 Penjualan Harian** (di atas "Omzet & Laba"): kartu Hari ini (dengan selisih dari kemarin), Kemarin, dan Total bulan
+(rata-rata per hari, tanggal terbaik); grafik batang omzet per tanggal (angka = unit terjual, oranye = hari ini); tabel per tanggal
+(unit, omzet, laba + nama laptop) dengan baris TOTAL. Pilih bulan lewat ‹ › atau kotak bulan. Klik batang/baris = rincian penjualan hari itu
+(klik unit = buka unit). Angka memakai `sumSales()` yang sama dengan Dashboard. Hanya tampilan (membungkus `renderDashboard`).
+Sumber: `harian/harian.js` → `python3 niscaya/harian/build_patch.py` → `patches/0033-penjualan-harian.py`.

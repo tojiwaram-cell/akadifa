@@ -18,3 +18,4 @@
 0029-dashboard-fungsi.py
 0030-impor-aman.py
 0031-supplier-total.py
+0033-penjualan-harian.py
