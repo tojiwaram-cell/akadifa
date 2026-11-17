@@ -1,4 +1,4 @@
-/*TEMA-MERAH v2*/
+/*TEMA-MERAH v3*/
 /* Tema merah-putih gaya "Adlytics" (referensi Pinterest pin 293296994506469195).
    Hanya warna & tampilan — data, menu, tombol dan fungsi tidak diubah. Menimpa tema-2026 (biru). */
 :root{
@@ -122,3 +122,5 @@ input:focus, select:focus, textarea:focus{ border-color:#F3A3A6 !important; box-
 .toolbar{ background:rgba(244,244,246,.96) !important; box-shadow:none !important; border-color:transparent !important; }
 .toolbar::before{ background:rgba(244,244,246,.96) !important; }
 .toolbar .search, .toolbar input, .toolbar select{ background:#fff !important; border:1px solid #E6E6EA !important; }
+/* Baris terpilih (tahun/bulan) di tabel Omzet */
+#content tr[style*="233, 242, 255"], #content tr[style*="#e9f2ff" i]{ background:#FDECEC !important; }
