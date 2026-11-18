@@ -141,3 +141,10 @@ WA: 08218942735
 Harga = harga akhir saat label dicetak, jadi **ubah harga = cetak ulang label**. ID ada di baris pertama sehingga scanner aplikasi
 (termasuk scanner USB yang mengirim Enter per baris) tetap membuka unit. Label lama berisi tautan `/tapi/u/<ID>` tetap terbaca dan
 halaman publik `/tapi/u/<ID>` tetap ada. Sumber: `soldflow/soldflow.js` v5 (`qrInfo`) → `python3 niscaya/soldflow/build_patch.py`.
+## Laporan pembagian komisi marketing (rilis 0038)
+Panel **📄 Laporan Pembagian Komisi Marketing** di atas menu **Marketing**: pilih tanggal mulai & akhir (pintasan Bulan ini / Bulan lalu)
+dan marketing (Semua marketing / per nama / semua penjualan termasuk tanpa marketing). Tabel per unit terjual: tanggal terjual, ID, tipe laptop,
+spek, serial number, supplier, harga modal (dari nota penjualan; cadangan dari stok), harga akhir (harga jual final), marketing, komisi
+(`nmKomisiSale` — aturan nominal/unit atau % untung yang sama dengan menu Marketing), plus rekap komisi per marketing dan total.
+**🖨 Cetak / PDF** (A4 mendatar, kolom tanda tangan owner & marketing) dan **⬇ Excel**. Hanya membaca data — tidak mengubah apa pun.
+Sumber: `komisi/komisi.js` → `python3 niscaya/komisi/build_patch.py` → `patches/0038-laporan-komisi.py`.
