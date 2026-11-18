@@ -1,4 +1,4 @@
-/*IMPOR-AMAN v3*/
+/*IMPOR-AMAN v4*/
 /* Impor Excel "gabung pintar" + cadangan otomatis di VPS + tombol kembalikan + riwayat impor, dan ekspor Excel yang rapi.
    - Unit dicocokkan lewat ID (atau No Seri). ID baru -> ditambahkan; ID lama -> hanya kolom yang terisi di Excel yang diperbarui.
    - Tidak pernah diubah oleh impor: status unit lama, DP, titipan & riwayatnya, biaya unit Sold, harga unit Sold, data penjualan lama.
@@ -428,7 +428,9 @@ function nmLoadExcelJs(){
 function nmF(fn, s, d){ try{ return typeof window[fn] === 'function' ? window[fn](s) : d; }catch(_){ return d; } }
 function nmExportData(){
   const ord = { Ready: 0, Booking: 1, DP: 2, Sold: 3 };
-  const stock = (DATA.stock || []).slice().sort((a, b) => (ord[a.status] ?? 9) - (ord[b.status] ?? 9) || String(a.id).localeCompare(String(b.id), 'id', {numeric:true}));
+  const urutT = typeof window.nmUrutTerbaru === 'function' ? window.nmUrutTerbaru(DATA.stock || []) : (DATA.stock || []).slice().reverse();
+  const posT = new Map(urutT.map((s, i) => [s, i]));
+  const stock = urutT.slice().sort((a, b) => (ord[a.status] ?? 9) - (ord[b.status] ?? 9) || posT.get(a) - posT.get(b));
   const biayaOf = s => nmF('totalBiaya', s, (s.biaya||[]).reduce((a, b) => a + (Number(b.nominal)||0), 0));
   const akhir = s => nmF('hargaAkhir', s, (Number(s.hargaJual)||0) - (Number(s.diskon)||0));
   const dpN = s => nmF('dpNominal', s, (s.dp && Number(s.dp.nominal)) || 0);

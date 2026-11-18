@@ -26,3 +26,4 @@
 0039-komisi-otomatis.py
 0040-komisi-terpisah.py
 0043-pulih-otomatis.py
+0047-stok-terbaru.py

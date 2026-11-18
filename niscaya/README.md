@@ -190,3 +190,9 @@ menggantikan kolom "No Seri" di ujung kanan), **PENJUALAN** dan **BIAYA UNIT** (
 **LAPORAN PENJUALAN** (sudah ada sejak 0044). Unit tanpa SN dibiarkan kosong. Impor tetap kompatibel: judul "Serial Number" dan "No Seri"
 sama-sama dibaca sebagai No Seri di STOK LAPTOP; kolom SN di PENJUALAN/BIAYA UNIT hanya informasi (diabaikan saat impor).
 Sumber: `imporaman/imporaman.js` (v3) → `python3 niscaya/imporaman/build_patch.py` → `patches/0030-impor-aman.py`.
+## Stok terbaru paling atas (rilis 0047)
+Unit stok terbaru tampil **paling atas** di menu **Stok** (Papan per kolom status & Tabel), **Label QR** (daftar dan urutan cetak) dan **Katalog WA**,
+serta di sheet **STOK LAPTOP** ekspor Excel (tetap dikelompokkan per status, terbaru di atas dalam tiap status).
+"Terbaru" = nomor ID terbesar (unit baru otomatis mendapat nomor berikutnya, mis. LP420 di atas LP419); nomor sama → yang ditambahkan belakangan.
+Hanya urutan tampilan — `DATA.stock` yang tersimpan tidak diubah (salinan berurutan dipakai sementara selama render, pola sama dengan soldflow).
+Sumber: `terbaru/terbaru.js` → `python3 niscaya/terbaru/build_patch.py` → `patches/0047-stok-terbaru.py`; ekspor di `imporaman/imporaman.js` (v4).
