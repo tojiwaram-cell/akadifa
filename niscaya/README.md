@@ -158,3 +158,8 @@ Atas permintaan owner: komisi marketing **tidak** dihitung ke harga modal/biaya 
 Laba = harga akhir − modal − biaya service (Dashboard, Penjualan, Penjualan Harian, rincian Dashboard). Kolom "Modal+Biaya+Komisi" kembali "Modal+Biaya".
 Komisi tetap dihitung (Rp 50.000/laptop lewat marketing) dan tampil di kolom Komisi, menu Marketing, dan Laporan Komisi.
 `patches/0040-komisi-terpisah.py` (edit teks idempoten, dijalankan setelah 0024/0029/0033).
+## Perbaikan aplikasi mati total (rilis 0042)
+Gejala: menu samping & Dashboard kosong, semua tombol tidak berfungsi. Penyebab: 0024 (laba − komisi) dan 0040 (komisi terpisah) saling
+membalik di setiap putaran deploy; tiap putaran menambah satu `const _kom` di `sumSales` → `SyntaxError: Identifier '_kom' has already been declared`
+sehingga skrip utama tidak jalan. Perbaikan: edit 0024 kini langsung menghasilkan versi "komisi terpisah" (tidak dibalik lagi oleh 0040),
+dan 0040 merapikan duplikat lama (`const _kom`, `r.komisi`, teks "(komisi marketing dicatat terpisah)"). Diuji stabil pada 4 putaran deploy berturut-turut.
