@@ -123,3 +123,8 @@ Referensi: Pinterest pin 1096485840542224949 (palet arounda: #FE2E4B, #0F0E0E, #
 gradasi merah, pil kaca, font Helvetica). Menggantikan isi blok `nm-tema-merah` (v3 merah-putih) — patch & mekanisme sama, cukup versi CSS berubah.
 Sidebar/header/kartu/panel kaca gelap, menu aktif & tombol utama = pil merah gradasi, kartu Booking & kartu sorot Harian merah gradasi, input/modal/Kanban gelap.
 Hanya CSS — data, menu dan fungsi tidak berubah; login & dashboard teknisi tidak disentuh. Untuk kembali ke merah-putih: ambil `tema.css` dari commit sebelum rilis ini.
+## Filter SN (No Seri) di Stok & Label (rilis 0036)
+Pilihan **SN: Semua / ✅ Sudah ada SN / ⚠ Belum ada SN** (dengan jumlah unit, mengikuti filter status) di toolbar menu **Stok**
+(Papan & Tabel) dan halaman **Label**. Bisa digabung dengan pencarian & filter status; di Label, "Pilih Semua" hanya memilih unit yang tersaring.
+SN dianggap kosong bila isinya kosong atau hanya "-", "0", "N/A", "tidak ada", "belum ada", "kosong". Pilihan tersorot merah saat aktif.
+Hanya tampilan — data tidak diubah. Sumber langsung di `patches/0036-filter-sn.py` (edit sumber `renderStock`/`renderBarcode`, penanda `/*SN-FILTER v1*/`).
