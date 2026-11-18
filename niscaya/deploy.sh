@@ -16,12 +16,55 @@ if LIST=$(curl -fsSL "$BASE/patches.txt?t=$(date +%s)"); then
   for p in $LIST; do t=$(mktemp); if curl -fsSL "$BASE/patches/$p?t=$(date +%s)" -o "$t" && python3 -m py_compile "$t" 2>/dev/null; then mv "$t" "$PDIR/$p"; else rm -f "$t"; fi; done
   echo "$LIST" | grep -v deployer > "$STATE/patches.txt"
 fi
-# 3) pemasang patch (dipakai juga oleh updater lama)
+# 3) pemeriksa sintaks JS + pemasang patch (dipakai juga oleh updater lama)
+# Node.js dipakai untuk memeriksa skrip; dipasang sekali di latar belakang bila belum ada.
+if ! command -v node >/dev/null 2>&1 && command -v apt-get >/dev/null 2>&1 && [ ! -f "$STATE/node-dicoba" ]; then
+  touch "$STATE/node-dicoba"; (DEBIAN_FRONTEND=noninteractive nohup sh -c 'apt-get update -qq && apt-get install -y -qq nodejs' >/var/log/niscaya-node.log 2>&1 &)
+  echo "$(ts) memasang nodejs (pemeriksa sintaks) di latar belakang"
+fi
+cat > /usr/local/bin/niscaya-cekjs <<'EOC'
+#!/usr/bin/env python3
+# NISCAYA cek sintaks: keluar 0 bila semua <script> inline sehat, 1 bila ada yang rusak (aplikasi akan macet).
+import sys, re, subprocess, tempfile, os, shutil
+src = open(sys.argv[1], encoding="utf-8", errors="replace").read()
+if "<html" not in src.lower() or len(src) < 2000: print("bukan file aplikasi"); sys.exit(1)
+blocks = [b for a, b in re.findall(r"<script(\b[^>]*)>(.*?)</script>", src, re.S | re.I)
+          if "src=" not in a.lower() and not re.search(r"type=[\"'](application/(ld\+)?json|text/(template|html|plain)|module)", a, re.I)]
+bad = []
+node = shutil.which("node") or shutil.which("nodejs")
+for i, b in enumerate(blocks):
+    for line in b.split("\n"):
+        for name in set(re.findall(r"\bconst\s+([A-Za-z_$][\w$]*)\s*=", line)):
+            if len(re.findall(r"\bconst\s+" + re.escape(name) + r"\s*=", line)) > 1: bad.append("skrip %d: const %s ganda" % (i, name))
+    if node:
+        fd, p = tempfile.mkstemp(suffix=".js"); os.write(fd, b.encode("utf-8")); os.close(fd)
+        r = subprocess.run([node, "--check", p], capture_output=True, text=True); os.unlink(p)
+        if r.returncode: bad.append("skrip %d: %s" % (i, ([l for l in r.stderr.splitlines() if "Error" in l] or r.stderr.strip().splitlines() or ["?"])[0][:200]))
+if bad: print("RUSAK:", "; ".join(bad[:5])); sys.exit(1)
+print("sehat (%d skrip, %s)" % (len(blocks), "node" if node else "tanpa node")); sys.exit(0)
+EOC
+chmod 755 /usr/local/bin/niscaya-cekjs
 cat > /usr/local/bin/niscaya-patch <<'EOS'
 #!/bin/bash
-f="$1"; S=/var/lib/niscaya-deploy
+# Pasang semua patch ke file $1, lalu periksa sintaks. Bila hasilnya rusak, file diganti versi sehat terakhir
+# (file yang sedang tayang, atau cadangan terbaru yang sehat) supaya aplikasi tidak pernah macet.
+f="$1"; S=/var/lib/niscaya-deploy; LOG=/var/log/niscaya-deploy.log
 [ -f "$f" ] && [ -f "$S/patches.txt" ] || exit 0
 for p in $(cat "$S/patches.txt"); do [ -f "$S/patches/$p" ] && python3 "$S/patches/$p" "$f" >/dev/null 2>&1; done
+if ! out=$(/usr/local/bin/niscaya-cekjs "$f" 2>&1); then
+  echo "$(date '+%F %T') hasil patch RUSAK ($out) - memakai versi sehat terakhir" >> "$LOG"
+  live=$(head -1 /etc/niscaya-deploy.conf 2>/dev/null)
+  for c in "$live" $(ls -1t "$S"/backup/* 2>/dev/null); do
+    [ -n "$c" ] && [ -f "$c" ] && [ "$c" != "$f" ] || continue
+    if /usr/local/bin/niscaya-cekjs "$c" >/dev/null 2>&1; then
+      t2=$(mktemp); cp "$c" "$t2"
+      for p in $(cat "$S/patches.txt"); do [ -f "$S/patches/$p" ] && python3 "$S/patches/$p" "$t2" >/dev/null 2>&1; done
+      /usr/local/bin/niscaya-cekjs "$t2" >/dev/null 2>&1 && cp "$t2" "$f" || cp "$c" "$f"; rm -f "$t2"
+      echo "$(date '+%F %T') dipulihkan dari $c" >> "$LOG"; exit 0
+    fi
+  done
+  echo "$(date '+%F %T') tidak ada versi sehat ditemukan" >> "$LOG"
+fi
 exit 0
 EOS
 chmod 755 /usr/local/bin/niscaya-patch

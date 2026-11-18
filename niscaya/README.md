@@ -163,3 +163,12 @@ Gejala: menu samping & Dashboard kosong, semua tombol tidak berfungsi. Penyebab:
 membalik di setiap putaran deploy; tiap putaran menambah satu `const _kom` di `sumSales` → `SyntaxError: Identifier '_kom' has already been declared`
 sehingga skrip utama tidak jalan. Perbaikan: edit 0024 kini langsung menghasilkan versi "komisi terpisah" (tidak dibalik lagi oleh 0040),
 dan 0040 merapikan duplikat lama (`const _kom`, `r.komisi`, teks "(komisi marketing dicatat terpisah)"). Diuji stabil pada 4 putaran deploy berturut-turut.
+## Anti-macet & pemulihan otomatis (rilis 0043)
+Melengkapi rilis 0042 (akar masalah: 0024 & 0040 saling membalik → `const _kom` ganda → menu/dashboard kosong).
+**Tiga lapis pengaman:**
+1. `patches/0043-pulih-otomatis.py` juga membersihkan baris `const _kom` / `r.komisi` ganda di file yang tayang.
+2. Deployer: `/usr/local/bin/niscaya-cekjs` memeriksa sintaks setiap `<script>` (Node.js `--check`, dipasang otomatis; tanpa Node tetap cek `const` ganda).
+   `niscaya-patch` menolak hasil patch yang rusak dan memakai versi sehat terakhir (file tayang atau cadangan terbaru yang sehat, lalu dipatch ulang).
+   Berlaku juga untuk updater lama. Log: `/var/log/niscaya-deploy.log` ("RUSAK", "dipulihkan dari …").
+3. Browser: skrip `/*NM-PULIH v1*/` di `<head>` — bila `#navList` kosong atau ada SyntaxError, halaman dimuat ulang tanpa cache (maks 2× per 3 menit),
+   lalu tampil pemberitahuan dan coba lagi tiap 20 detik sampai server pulih. Sumber: `pulih/pulih.js` → `python3 niscaya/pulih/build_patch.py`.
