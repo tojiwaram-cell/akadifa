@@ -153,3 +153,8 @@ Setiap penjualan yang punya **Marketing yang Jual** otomatis mendapat komisi **R
 (`komisiFor`/`nmKomisiSale` diganti): Dashboard (laba), Penjualan, Marketing, Penjualan Harian, Laporan Komisi. Form Tambah/Edit Marketing mengunci
 komisi di Nominal Rp 50.000; form Catat Penjualan menampilkan "Komisi …: Rp 50.000 (otomatis)" saat marketing dipilih. Data tidak diubah.
 Untuk mengganti besaran: ubah `KOMISI` di `komisi-otomatis/otomatis.js` → `python3 niscaya/komisi-otomatis/build_patch.py`.
+## Komisi marketing dipisah dari modal & laba (rilis 0040)
+Atas permintaan owner: komisi marketing **tidak** dihitung ke harga modal/biaya dan **tidak** memotong laba.
+Laba = harga akhir − modal − biaya service (Dashboard, Penjualan, Penjualan Harian, rincian Dashboard). Kolom "Modal+Biaya+Komisi" kembali "Modal+Biaya".
+Komisi tetap dihitung (Rp 50.000/laptop lewat marketing) dan tampil di kolom Komisi, menu Marketing, dan Laporan Komisi.
+`patches/0040-komisi-terpisah.py` (edit teks idempoten, dijalankan setelah 0024/0029/0033).

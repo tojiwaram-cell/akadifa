@@ -24,3 +24,4 @@
 0036-filter-sn.py
 0038-laporan-komisi.py
 0039-komisi-otomatis.py
+0040-komisi-terpisah.py
