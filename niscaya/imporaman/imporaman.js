@@ -1,4 +1,4 @@
-/*IMPOR-AMAN v1*/
+/*IMPOR-AMAN v2*/
 /* Impor Excel "gabung pintar" + cadangan otomatis di VPS + tombol kembalikan + riwayat impor, dan ekspor Excel yang rapi.
    - Unit dicocokkan lewat ID (atau No Seri). ID baru -> ditambahkan; ID lama -> hanya kolom yang terisi di Excel yang diperbarui.
    - Tidak pernah diubah oleh impor: status unit lama, DP, titipan & riwayatnya, biaya unit Sold, harga unit Sold, data penjualan lama.
@@ -458,12 +458,76 @@ function nmExportData(){
   const aktif = stock.filter(s => s.status !== 'Sold');
   const sum = (a, f) => a.reduce((t, x) => t + (Number(f(x))||0), 0);
   const perBulan = {}; sales.forEach(s => { const k = String(nmIso(s.tanggal)).slice(0, 7); if(!/^\d{4}-\d{2}$/.test(k)) return; const o = perBulan[k] = perBulan[k] || {n:0, omzet:0, untung:0}; o.n++; o.omzet += Number(s.jual)||0; o.untung += Number(s.untung)||0; });
-  return { stockCols, stockRows, salesCols, salesRows, biayaCols, biayaRows, supCols, supRows, mktCols, mktRows,
+  // Laporan penjualan (rilis 0044): tanggal, tipe, spek, SN, supplier, modal, harga akhir, marketing
+  const byId = {}; (DATA.stock || []).forEach(u => { byId[String(u.id)] = u; });
+  const cl = v => { v = String(v == null ? '' : v).trim(); return v && v !== '-' ? v : ''; };
+  const lapRows = (DATA.sales || []).map(s => { const u = byId[String(s.id)] || {};
+    let modal = Number(s.modal); if(!s.modal && s.modal !== 0 || isNaN(modal)) modal = Number(u.hargaModal) || 0;
+    return { tgl: String(nmIso(s.tanggal) || ''), id: s.id || '', tipe: [cl(u.merek), cl(u.tipe)].filter(Boolean).join(' ') || cl(s.laptop) || '-',
+      spek: [cl(u.processor), cl(u.ram), cl(u.ssd), cl(u.vga)].filter(Boolean).join(' / ') || cl(u.spekAsli) || '-',
+      sn: cl(u.noSeri) || '-', sup: cl(u.supplier) || '-', modal: modal || 0, akhir: Number(s.jual) || 0, mk: cl(s.marketing) }; })
+    .sort((a, b) => a.tgl < b.tgl ? -1 : a.tgl > b.tgl ? 1 : String(a.id).localeCompare(String(b.id), 'id', {numeric:true}));
+  return { lapRows, D, stockCols, stockRows, salesCols, salesRows, biayaCols, biayaRows, supCols, supRows, mktCols, mktRows,
     ring: { ready: cnt('Ready'), booking: cnt('Booking'), dp: cnt('DP'), sold: cnt('Sold'), total: stock.length,
       modalAktif: sum(aktif, s => nmF('modalTotal', s, Number(s.hargaModal)||0)), jualAktif: sum(aktif, akhir), titip: stock.filter(s => s.lokasi && s.lokasi.toko && s.status !== 'Sold').length,
       trx: sales.length, omzet: sum(sales, s => s.jual), untung: sum(sales, s => s.untung), perBulan } };
 }
 const NM_BULAN = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+const NM_LAP_COLS = [['No',6,'n'],['Tanggal Penjualan',15,'d'],['ID Unit',10,'id'],['Tipe Laptop',28,'t'],['Spesifikasi',38,'t'],['Serial Number',22,'sn'],
+  ['Supplier',18,'t'],['Harga Modal',17,'rp'],['Harga Jual (Akhir)',19,'rp'],['Marketing',20,'mk']];
+function nmLapPenjualan(wb, X, K){
+  const rows = X.lapRows, N = NM_LAP_COLS.length, last = String.fromCharCode(64 + N), HR = 5;
+  const ws = wb.addWorksheet('LAPORAN PENJUALAN', { properties: { tabColor: { argb: 'FFFE2E4B' } },
+    views: [{ state: 'frozen', xSplit: 0, ySplit: HR, showGridLines: false, zoomScale: 100 }],
+    pageSetup: { orientation: 'landscape', fitToPage: true, fitToWidth: 1, fitToHeight: 0, paperSize: 9, printTitlesRow: HR + ':' + HR,
+      margins: { left: .3, right: .3, top: .45, bottom: .45, header: .2, footer: .2 } },
+    headerFooter: { oddFooter: '&LLaporan Penjualan — NISCAYA MAKASSAR&RHalaman &P / &N' } });
+  ws.columns = NM_LAP_COLS.map(([, w]) => ({ width: w }));
+  const FONT = 'Calibri';
+  ws.mergeCells(`A1:${last}1`); const t = ws.getCell('A1'); t.value = 'LAPORAN PENJUALAN LAPTOP — NISCAYA MAKASSAR';
+  t.font = { name: FONT, bold: true, size: 16, color: { argb: 'FFFFFFFF' } }; t.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: K.BLUE } };
+  t.alignment = { vertical: 'middle', horizontal: 'center' }; ws.getRow(1).height = 34;
+  const tg = v => { const p = String(v || '').split('-'); return p.length === 3 ? Number(p[2]) + ' ' + NM_BULAN[Number(p[1]) - 1] + ' ' + p[0] : '-'; };
+  const per = rows.length ? 'Periode: ' + tg(rows[0].tgl) + ' s/d ' + tg(rows[rows.length - 1].tgl) : 'Belum ada penjualan';
+  const now = new Date();
+  ws.mergeCells(`A2:${last}2`); const t2 = ws.getCell('A2');
+  t2.value = per + '   •   ' + rows.length + ' unit terjual   •   Diekspor ' + now.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) + ' ' + now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+  t2.font = { name: FONT, italic: true, size: 10.5, color: { argb: 'FF475569' } }; t2.alignment = { horizontal: 'center', vertical: 'middle' }; ws.getRow(2).height = 20;
+  // kartu ringkas baris 3
+  const totM = rows.reduce((a, r) => a + r.modal, 0), totA = rows.reduce((a, r) => a + r.akhir, 0), viaMk = rows.filter(r => r.mk).length;
+  const card = (rng, label, val, fmt, col) => { const [p1, p2] = rng.split(':'); if(p1 !== p2) ws.mergeCells(rng); const c = ws.getCell(rng.split(':')[0]);
+    c.value = { richText: [{ text: label + '\n', font: { name: FONT, size: 9, color: { argb: 'FF64748B' } } }, { text: val, font: { name: FONT, size: 12, bold: true, color: { argb: col || 'FF0F172A' } } }] };
+    c.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true }; c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF1F5F9' } };
+    c.border = { top: { style: 'thin', color: { argb: 'FFCBD5E1' } }, bottom: { style: 'thin', color: { argb: 'FFCBD5E1' } }, left: { style: 'thin', color: { argb: 'FFCBD5E1' } }, right: { style: 'thin', color: { argb: 'FFCBD5E1' } } }; };
+  const rp = n => 'Rp ' + Math.round(n).toLocaleString('id-ID');
+  card('A3:C3', 'Unit terjual', rows.length + ' unit'); card('D3:E3', 'Lewat marketing / tanpa marketing', viaMk + ' / ' + (rows.length - viaMk) + ' unit');
+  card('F3:G3', 'Total harga modal', rp(totM)); card('H3:I3', 'Total harga jual (akhir)', rp(totA), 'FF067647'); card('J3:J3', 'Selisih', rp(totA - totM), totA - totM < 0 ? 'FFDC2626' : 'FF067647');
+  ws.getRow(3).height = 40; ws.getRow(4).height = 8;
+  // judul kolom
+  const hr = ws.getRow(HR); hr.height = 32;
+  NM_LAP_COLS.forEach(([h], j) => { const c = hr.getCell(j + 1); c.value = h; c.font = { name: FONT, bold: true, size: 11, color: { argb: 'FFFFFFFF' } };
+    c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: K.ACC } }; c.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true }; c.border = K.border; });
+  const al = { n: 'center', d: 'center', id: 'center', sn: 'left', rp: 'right', mk: 'left', t: 'left' };
+  rows.forEach((r, i) => {
+    const row = ws.getRow(HR + 1 + i), vals = [i + 1, X.D(r.tgl), r.id, r.tipe, r.spek, r.sn, r.sup, r.modal, r.akhir, r.mk || 'Tanpa marketing'];
+    row.height = 20;
+    vals.forEach((v, j) => { const c = row.getCell(j + 1), ty = NM_LAP_COLS[j][2]; c.value = v; c.border = K.border;
+      c.font = { name: FONT, size: 11, bold: ty === 'id', color: ty === 'mk' && !r.mk ? { argb: 'FF94A3B8' } : undefined, italic: ty === 'mk' && !r.mk };
+      const h = v === '-' ? 'center' : al[ty]; c.alignment = { vertical: 'middle', horizontal: h, wrapText: ty === 't', indent: h === 'center' ? 0 : 1 };
+      if(ty === 'rp') c.numFmt = K.RP; else if(ty === 'd') c.numFmt = K.DT;
+      if(i % 2 === 1) c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: K.ZEB } }; });
+    const m = row.getCell(10); if(r.mk) m.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFE4E8' } };
+  });
+  if(!rows.length){ const er = HR + 1; ws.mergeCells(`A${er}:${last}${er}`); const c = ws.getCell(`A${er}`); c.value = 'Belum ada data penjualan.'; c.alignment = { horizontal: 'center' }; c.font = { italic: true, color: { argb: 'FF64748B' } }; }
+  // baris total (rumus, ikut berubah bila data diedit)
+  const a = HR + 1, b = HR + Math.max(rows.length, 1), tr = ws.getRow(b + 1); tr.height = 26;
+  ws.mergeCells(`A${b + 1}:G${b + 1}`); tr.getCell(1).value = `TOTAL  (${rows.length} unit)`;
+  tr.getCell(8).value = { formula: `SUBTOTAL(9,H${a}:H${b})`, result: totM }; tr.getCell(9).value = { formula: `SUBTOTAL(9,I${a}:I${b})`, result: totA };
+  for(let j = 1; j <= N; j++){ const c = tr.getCell(j); c.font = { name: FONT, bold: true, size: 11.5, color: { argb: 'FFFFFFFF' } };
+    c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: K.BLUE } }; c.border = K.border; c.alignment = { vertical: 'middle', horizontal: j === 1 ? 'center' : 'right', indent: j === 1 ? 0 : 1 }; if(j === 8 || j === 9) c.numFmt = K.RP; }
+  if(rows.length) ws.autoFilter = { from: { row: HR, column: 1 }, to: { row: HR + rows.length, column: N } };
+  return ws;
+}
 async function nmExportStyled(ExcelJS, X){
   const wb = new ExcelJS.Workbook(); wb.creator = 'NISCAYA MAKASSAR'; wb.created = new Date();
   const BLUE = 'FF1E3A8A', ACC = 'FF2563EB', ZEB = 'FFF5F8FF', LINE = 'FFD9E1F2';
@@ -524,9 +588,11 @@ async function nmExportStyled(ExcelJS, X){
     const vals = [NM_BULAN[Number(m) - 1] + ' ' + y, o.n, o.omzet, o.untung], fm = [null, '#,##0', RP, RP];
     vals.forEach((v, j) => { const c = ws.getRow(r).getCell(j + 2); c.value = v; if(fm[j]) c.numFmt = fm[j]; c.border = border; c.alignment = { horizontal: j ? 'right' : 'left' };
       if(i % 2 === 0) c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: ZEB } }; }); r++; });
-  r++; ws.mergeCells(`B${r}:E${r}`); const n = ws.getCell(`B${r}`); n.value = 'Sheet STOK LAPTOP, PENJUALAN, BIAYA UNIT, SUPPLIER, dan MARKETING bisa diedit lalu diimpor kembali ke aplikasi (data digabung, tidak menimpa).';
+  r++; ws.mergeCells(`B${r}:E${r}`); const n = ws.getCell(`B${r}`); n.value = 'Sheet LAPORAN PENJUALAN berisi rincian unit terjual (hanya laporan). Sheet STOK LAPTOP, PENJUALAN, BIAYA UNIT, SUPPLIER, dan MARKETING bisa diedit lalu diimpor kembali ke aplikasi (data digabung, tidak menimpa).';
   n.font = { italic: true, size: 9.5, color: { argb: 'FF64748B' } }; n.alignment = { wrapText: true }; ws.getRow(r).height = 28;
 
+  nmLapPenjualan(wb, X, { BLUE, ACC, ZEB, LINE, RP, DT, border });
+  wb.views = [{ x: 0, y: 0, width: 20000, height: 12000, firstSheet: 0, activeTab: 1, visibility: 'visible' }];
   sheet('STOK LAPTOP', X.stockCols, X.stockRows, { freezeCol: 3, idBold: true, tab: 'FF059669' });
   sheet('PENJUALAN', X.salesCols, X.salesRows, { freezeCol: 0, tab: 'FFD97706' });
   sheet('BIAYA UNIT', X.biayaCols, X.biayaRows, { freezeCol: 1, idBold: true, tab: 'FFDC2626' });
@@ -544,6 +610,7 @@ function nmExportPlain(X){
   const ring = XLSX.utils.aoa_to_sheet([['NISCAYA MAKASSAR — Laporan Data'], ['Diekspor', new Date().toLocaleString('id-ID')], [], ['Ready', R.ready], ['Booking', R.booking], ['Sudah DP', R.dp], ['Sold', R.sold],
     ['Total unit', R.total], ['Nilai modal stok aktif', R.modalAktif], ['Nilai jual stok aktif', R.jualAktif], [], ['Jumlah transaksi', R.trx], ['Total omzet', R.omzet], ['Total untung tercatat', R.untung]]);
   ring['!cols'] = [{ wch: 28 }, { wch: 20 }]; XLSX.utils.book_append_sheet(wb, ring, 'RINGKASAN');
+  add('LAPORAN PENJUALAN', NM_LAP_COLS, X.lapRows.map((r, i) => [i + 1, r.tgl, r.id, r.tipe, r.spek, r.sn, r.sup, r.modal, r.akhir, r.mk || 'Tanpa marketing']));
   add('STOK LAPTOP', X.stockCols, X.stockRows); add('PENJUALAN', X.salesCols, X.salesRows); add('BIAYA UNIT', X.biayaCols, X.biayaRows); add('SUPPLIER', X.supCols, X.supRows); add('MARKETING', X.mktCols, X.mktRows);
   return wb;
 }

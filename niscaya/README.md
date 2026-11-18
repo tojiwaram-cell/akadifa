@@ -172,3 +172,10 @@ Melengkapi rilis 0042 (akar masalah: 0024 & 0040 saling membalik → `const _kom
    Berlaku juga untuk updater lama. Log: `/var/log/niscaya-deploy.log` ("RUSAK", "dipulihkan dari …").
 3. Browser: skrip `/*NM-PULIH v1*/` di `<head>` — bila `#navList` kosong atau ada SyntaxError, halaman dimuat ulang tanpa cache (maks 2× per 3 menit),
    lalu tampil pemberitahuan dan coba lagi tiap 20 detik sampai server pulih. Sumber: `pulih/pulih.js` → `python3 niscaya/pulih/build_patch.py`.
+## Sheet LAPORAN PENJUALAN di ekspor Excel (rilis 0044)
+Ekspor Excel kini langsung terbuka di sheet **LAPORAN PENJUALAN** (setelah RINGKASAN): judul + periode, kartu ringkas (unit terjual,
+lewat/tanpa marketing, total modal, total harga akhir, selisih), lalu tabel rapi: No, Tanggal Penjualan, ID Unit, Tipe Laptop, Spesifikasi,
+Serial Number, Supplier, Harga Modal, Harga Jual (Akhir), Marketing ("Tanpa marketing" bila kosong); baris TOTAL memakai rumus SUBTOTAL
+(ikut menyesuaikan saat difilter), judul kolom terkunci & tercetak di tiap halaman, A4 mendatar. Spek/SN/supplier diambil dari data stok unit,
+modal dari nota penjualan (cadangan: harga modal stok). Sheet ini hanya laporan — impor tetap membaca sheet PENJUALAN dkk.
+Sumber: `imporaman/imporaman.js` (v2, `nmLapPenjualan`) → `python3 niscaya/imporaman/build_patch.py` → `patches/0030-impor-aman.py`.
