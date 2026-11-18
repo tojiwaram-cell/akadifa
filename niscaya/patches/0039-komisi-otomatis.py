@@ -1,0 +1,21 @@
+#!/usr/bin/env python3
+# NISCAYA MAKASSAR patch 0039: komisi marketing otomatis Rp 50.000 per laptop.
+# Idempoten: blok <script>/*KOMISI-OTOMATIS v..*/ disisipkan sebelum </body>, atau diganti bila versinya berbeda.
+import sys, json, re
+path = sys.argv[1]
+JS = json.loads('"/*KOMISI-OTOMATIS v1*/\\n/* Rilis 0039 — komisi marketing otomatis Rp 50.000 per laptop:\\n   - Setiap penjualan yang punya Marketing → komisi Rp 50.000 (tidak perlu diisi manual; berlaku di Dashboard, Penjualan, Marketing, Harian, Laporan Komisi)\\n   - Penjualan tanpa marketing → komisi Rp 0\\n   - Form Tambah/Edit Marketing: tipe & besaran komisi terkunci di Nominal Rp 50.000\\n   - Form Catat Penjualan: keterangan komisi otomatis muncul saat marketing dipilih\\n   Data penjualan & marketing tidak diubah; hanya cara hitung komisi. */\\n(function(){\\n  if (window.__komisiOtomatis) return; window.__komisiOtomatis = 1;\\n  var KOMISI = 50000;\\n  function rp(n){ try { return rupiah(n); } catch (_) { return \'Rp \' + (Number(n) || 0).toLocaleString(\'id-ID\'); } }\\n  function ada(v){ v = String(v == null ? \'\' : v).trim(); return !!v && v !== \'-\'; }\\n  window.NM_KOMISI_PER_UNIT = KOMISI;\\n  window.komisiFor = function(m, s){ return s && ada(s.marketing) ? KOMISI : 0; };\\n  window.nmKomisiSale = function(s){ return s && ada(s.marketing) ? KOMISI : 0; };\\n\\n  function kunciMarketing(){\\n    var box = document.getElementById(\'modalBox\'); if (!box) return;\\n    var tipe = box.querySelector(\'#m_tipe\'), kom = box.querySelector(\'#m_komisi\'); if (!tipe || !kom) return;\\n    tipe.value = \'nominal\'; tipe.disabled = true;\\n    kom.value = String(KOMISI); kom.readOnly = true; kom.style.opacity = \'.75\';\\n    try { kom.dispatchEvent(new Event(\'input\', { bubbles: true })); tipe.dispatchEvent(new Event(\'change\', { bubbles: true })); } catch (_) {}\\n    if (!box.querySelector(\'#nmKomNote\')){\\n      var n = document.createElement(\'div\'); n.id = \'nmKomNote\'; n.className = \'dim\';\\n      n.style.cssText = \'font-size:12px;margin-top:6px\';\\n      n.textContent = \'🔒 Komisi otomatis \' + rp(KOMISI) + \' per laptop yang terjual lewat marketing ini.\';\\n      (kom.parentNode || box).appendChild(n);\\n    }\\n    var save = box.querySelector(\'#saveMkt\');\\n    if (save && !save.__nmKom){ save.__nmKom = 1; save.addEventListener(\'click\', function(){ tipe.disabled = false; tipe.value = \'nominal\'; kom.value = String(KOMISI); }, true); }\\n  }\\n  function catatanPenjualan(){\\n    var box = document.getElementById(\'modalBox\'); if (!box) return;\\n    var sel = box.querySelector(\'#s_marketing\'); if (!sel) return;\\n    var n = box.querySelector(\'#nmKomSale\');\\n    if (!n){ n = document.createElement(\'div\'); n.id = \'nmKomSale\'; n.style.cssText = \'font-size:12px;margin-top:6px;font-weight:600\'; (sel.parentNode || box).appendChild(n); }\\n    function upd(){ var on = ada(sel.value); n.textContent = on ? \'✅ Komisi \' + sel.value + \': \' + rp(KOMISI) + \' (otomatis)\' : \'Tanpa marketing — tidak ada komisi\'; n.style.color = on ? \'var(--ready,#16a34a)\' : \'\'; n.style.opacity = on ? \'1\' : \'.6\'; }\\n    sel.addEventListener(\'change\', upd); upd();\\n  }\\n  function bungkus(nama, fn){\\n    var o = window[nama]; if (typeof o !== \'function\' || o.__nmKom) return;\\n    var w = function(){ var r = o.apply(this, arguments); try { setTimeout(fn, 0); } catch (_) {} return r; };\\n    w.__nmKom = 1; window[nama] = w;\\n  }\\n  bungkus(\'openMarketingModal\', kunciMarketing);\\n  bungkus(\'openSaleModal\', catatanPenjualan);\\n  try { if (typeof window.render === \'function\') window.render(); } catch (e2) {}\\n})();"')
+VER = JS.split("\n", 1)[0]
+src = open(path, encoding="utf-8").read()
+if VER in src: sys.exit(0)
+crlf = "\r\n" in src
+if crlf: src = src.replace("\r\n", "\n")
+blk = "<script>" + JS + "</script>\n"
+m = re.search(r"<script>/\*KOMISI-OTOMATIS v[^\n]*\n.*?</script>\n?", src, re.S)
+if m: src = src[:m.start()] + blk + src[m.end():]
+elif "</body>" in src:
+    i = src.rfind("</body>"); src = src[:i] + blk + src[i:]
+else:
+    print("0039: </body> tidak ditemukan - dibatalkan"); sys.exit(2)
+if crlf: src = src.replace("\n", "\r\n")
+open(path, "w", encoding="utf-8").write(src)
+print("0039: komisi otomatis terpasang", VER)

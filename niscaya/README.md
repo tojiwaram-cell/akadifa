@@ -148,3 +148,8 @@ spek, serial number, supplier, harga modal (dari nota penjualan; cadangan dari s
 (`nmKomisiSale` — aturan nominal/unit atau % untung yang sama dengan menu Marketing), plus rekap komisi per marketing dan total.
 **🖨 Cetak / PDF** (A4 mendatar, kolom tanda tangan owner & marketing) dan **⬇ Excel**. Hanya membaca data — tidak mengubah apa pun.
 Sumber: `komisi/komisi.js` → `python3 niscaya/komisi/build_patch.py` → `patches/0038-laporan-komisi.py`.
+## Komisi marketing otomatis Rp 50.000 per laptop (rilis 0039)
+Setiap penjualan yang punya **Marketing yang Jual** otomatis mendapat komisi **Rp 50.000**; tanpa marketing = Rp 0. Berlaku di semua hitungan
+(`komisiFor`/`nmKomisiSale` diganti): Dashboard (laba), Penjualan, Marketing, Penjualan Harian, Laporan Komisi. Form Tambah/Edit Marketing mengunci
+komisi di Nominal Rp 50.000; form Catat Penjualan menampilkan "Komisi …: Rp 50.000 (otomatis)" saat marketing dipilih. Data tidak diubah.
+Untuk mengganti besaran: ubah `KOMISI` di `komisi-otomatis/otomatis.js` → `python3 niscaya/komisi-otomatis/build_patch.py`.
