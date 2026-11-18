@@ -179,3 +179,8 @@ Serial Number, Supplier, Harga Modal, Harga Jual (Akhir), Marketing ("Tanpa mark
 (ikut menyesuaikan saat difilter), judul kolom terkunci & tercetak di tiap halaman, A4 mendatar. Spek/SN/supplier diambil dari data stok unit,
 modal dari nota penjualan (cadangan: harga modal stok). Sheet ini hanya laporan — impor tetap membaca sheet PENJUALAN dkk.
 Sumber: `imporaman/imporaman.js` (v2, `nmLapPenjualan`) → `python3 niscaya/imporaman/build_patch.py` → `patches/0030-impor-aman.py`.
+## Dashboard teknisi tema gelap-merah (rilis 0045)
+Warna dashboard akun teknisi disamakan dengan tema gelap-merah aplikasi owner (#FE2E4B, #0F0E0E, #161316): rel menu kaca gelap dengan
+menu aktif merah, kartu Ringkasan gelap dengan garis grafik merah, kartu "Upah saya" gradasi merah, kartu tugas & panel kanan gelap,
+jendela detail/form gelap. Hanya warna — data, tombol dan fungsi tidak diubah. Blok CSS `/*DSH-MERAH v1*/` di `teknisi/teknisi.html`
+(setelah `/*DSH-END*/`), plus warna grafik & ikon aktivitas di JS. Setelah mengubah: `python3 niscaya/teknisi/build_patch.py`.
