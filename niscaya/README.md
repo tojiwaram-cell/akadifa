@@ -146,7 +146,7 @@ Panel **📄 Laporan Pembagian Komisi Marketing** di atas menu **Marketing**: pi
 dan marketing (Semua marketing / per nama / semua penjualan termasuk tanpa marketing). Tabel per unit terjual: tanggal terjual, ID, tipe laptop,
 spek, serial number, supplier, harga modal (dari nota penjualan; cadangan dari stok), harga akhir (harga jual final), marketing, komisi
 (`nmKomisiSale` — aturan nominal/unit atau % untung yang sama dengan menu Marketing), plus rekap komisi per marketing dan total.
-**🖨 Cetak / PDF** (A4 mendatar, kolom tanda tangan owner & marketing) dan **⬇ Excel**. Hanya membaca data — tidak mengubah apa pun.
+**🖨 Cetak / PDF** (A4 mendatar; kolom tanda tangan dihapus sejak v2) dan **⬇ Excel**. Hanya membaca data — tidak mengubah apa pun.
 Sumber: `komisi/komisi.js` → `python3 niscaya/komisi/build_patch.py` → `patches/0038-laporan-komisi.py`.
 ## Komisi marketing otomatis Rp 50.000 per laptop (rilis 0039)
 Setiap penjualan yang punya **Marketing yang Jual** otomatis mendapat komisi **Rp 50.000**; tanpa marketing = Rp 0. Berlaku di semua hitungan

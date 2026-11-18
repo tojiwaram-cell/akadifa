@@ -1,4 +1,4 @@
-/*LAPORAN-KOMISI v1*/
+/*LAPORAN-KOMISI v2*/
 /* Rilis 0038 — Laporan pembagian komisi marketing (menu Marketing):
    pilih tanggal mulai & akhir + marketing, tabel per unit terjual (tanggal, ID, tipe, spek, SN, supplier, harga modal, harga akhir,
    marketing, komisi), rekap komisi per marketing, cetak/PDF dan ekspor Excel. Hanya membaca data — tidak mengubah apa pun. */
@@ -73,10 +73,9 @@
     w.document.write('<!DOCTYPE html><html lang="id"><head><meta charset="utf-8"><title>Laporan Komisi Marketing ' + E(ST.dari) + ' sd ' + E(ST.sampai) + '</title><style>' +
       'body{font-family:Arial,Helvetica,sans-serif;color:#111;margin:18px;font-size:11px}h1{font-size:17px;margin:0}h2{font-size:13px;margin:16px 0 6px}.sub{color:#555;margin:3px 0 12px}' +
       'table{width:100%;border-collapse:collapse;margin-bottom:8px}th,td{border:1px solid #999;padding:4px 5px;vertical-align:top}th{background:#eee;text-align:left}tfoot td{background:#f5f5f5}.mono{font-family:Consolas,monospace;white-space:nowrap}' +
-      '.ttd{display:flex;justify-content:space-between;margin-top:36px}.ttd div{width:40%;text-align:center}@page{size:A4 landscape;margin:10mm}</style></head><body>' +
+      '@page{size:A4 landscape;margin:10mm}</style></head><body>' +
       '<h1>NISCAYA MAKASSAR — Laporan Pembagian Komisi Marketing</h1><div class="sub">Periode: <b>' + E(periode()) + '</b> · Marketing: <b>' + E(judulMk()) + '</b> · Dicetak ' + E(tglID(ymdOf(new Date()))) + '</div>' +
       '<h2>Rekap komisi per marketing</h2>' + (rekapHTML(rows) || '<p>Tidak ada data.</p>') + '<h2>Rincian unit terjual</h2>' + tabelHTML(rows, true) +
-      '<div class="ttd"><div>Mengetahui,<br><br><br><br>( Owner )</div><div>Diterima oleh,<br><br><br><br>( Marketing )</div></div>' +
       '<script>window.onload=function(){setTimeout(function(){window.print();},300);};<\/script></body></html>');
     w.document.close();
   }
