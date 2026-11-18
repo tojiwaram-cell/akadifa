@@ -128,3 +128,16 @@ Pilihan **SN: Semua / ✅ Sudah ada SN / ⚠ Belum ada SN** (dengan jumlah unit,
 (Papan & Tabel) dan halaman **Label**. Bisa digabung dengan pencarian & filter status; di Label, "Pilih Semua" hanya memilih unit yang tersaring.
 SN dianggap kosong bila isinya kosong atau hanya "-", "0", "N/A", "tidak ada", "belum ada", "kosong". Pilihan tersorot merah saat aktif.
 Hanya tampilan — data tidak diubah. Sumber langsung di `patches/0036-filter-sn.py` (edit sumber `renderStock`/`renderBarcode`, penanda `/*SN-FILTER v1*/`).
+## QR berisi teks info unit, bukan link (rilis 0037)
+Atas permintaan owner, QR label kini berisi **teks** (tanpa tautan). Discan kamera HP → info langsung tampil:
+```
+NISCAYA MAKASSAR | ID: LP013
+ASUS Vivobook TP412FA
+SN: N4N0CV092876168
+CEL N400 / 8GB / 128GB SSD
+Harga: Rp 2.300.000      (unit tanpa harga: "Tanya harga")
+WA: 08218942735
+```
+Harga = harga akhir saat label dicetak, jadi **ubah harga = cetak ulang label**. ID ada di baris pertama sehingga scanner aplikasi
+(termasuk scanner USB yang mengirim Enter per baris) tetap membuka unit. Label lama berisi tautan `/tapi/u/<ID>` tetap terbaca dan
+halaman publik `/tapi/u/<ID>` tetap ada. Sumber: `soldflow/soldflow.js` v5 (`qrInfo`) → `python3 niscaya/soldflow/build_patch.py`.

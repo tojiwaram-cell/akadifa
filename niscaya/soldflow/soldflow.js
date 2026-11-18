@@ -1,4 +1,4 @@
-/*SOLDFLOW v4*/
+/*SOLDFLOW v5*/
 /* Rilis 0023 — alur unit terjual:
    - QR label berisi tautan /tapi/u/<ID> (status & harga selalu terbaru); label lama (teks) tetap terbaca
    - Scan unit Sold/Booking/DP memunculkan peringatan besar
@@ -6,6 +6,9 @@
    - Kanban: kolom Sold hanya bulan ini + tombol arsip (data tidak dihapus)
    - Katalog WA: tanggal stok + link katalog online
    - v4 (rilis 0032): cuplikan publik ikut membawa No Seri (SN) untuk halaman QR
+   - v5 (rilis 0037): QR label berisi TEKS info unit (tipe, SN, spek, harga akhir, WA) — discan kamera HP langsung tampil tanpa link.
+     Harga ikut tercetak saat label dibuat; ubah harga = cetak ulang label. Baris 'ID: <ID>' tetap ada agar scanner aplikasi mengenali unit.
+     Label lama (tautan /tapi/u/<ID>) tetap terbaca.
    - Cuplikan stok publik (tanpa modal/supplier/pembeli) dikirim ke server untuk halaman QR & katalog online */
 (function(){
   if(window.__soldFlow) return; window.__soldFlow = 1;
@@ -20,7 +23,24 @@
   function hariLalu(ymd){ var d = new Date(String(ymd) + 'T00:00:00'); if(isNaN(d)) return ''; var n = Math.round((new Date(today() + 'T00:00:00') - d) / 86400000); return n <= 0 ? 'hari ini' : n + ' hari lalu'; }
 
   /* ---- QR: tautan unit ---- */
-  if(has('qrText')) window.qrText = function(s){ return unitUrl(s && s.id); };
+  var WA_TOKO = '08218942735';
+  function qrInfo(s){
+    s = s || {};
+    var akhir = 0;
+    try{ akhir = Number(hargaAkhir(s)) || 0; }catch(_){ akhir = Math.max(0, (Number(s.hargaJual)||0) - (Number(s.diskon)||0)); }
+    var bersih = function(v){ v = String(v == null ? '' : v).trim(); return v && v !== '-' ? v : ''; };
+    var nm = [bersih(s.merek), bersih(s.tipe)].filter(Boolean).join(' ');
+    var spek = [bersih(s.processor), bersih(s.ram), bersih(s.ssd)].filter(Boolean).join(' / ');
+    /* ID di baris pertama: scanner USB yang mengirim Enter per baris tetap membaca ID unit */
+    var L = ['NISCAYA MAKASSAR | ID: ' + (s.id || '-')];
+    if(nm) L.push(nm);
+    L.push('SN: ' + (bersih(s.noSeri) || '-'));
+    if(spek) L.push(spek);
+    L.push('Harga: ' + (akhir > 0 ? rp(akhir) : 'Tanya harga'));
+    L.push('WA: ' + WA_TOKO);
+    return L.join('\n');
+  }
+  if(has('qrText')) window.qrText = qrInfo;
   if(has('scanCode')){
     var _scanCode = window.scanCode;
     window.scanCode = function(raw){
