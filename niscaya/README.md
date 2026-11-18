@@ -184,3 +184,9 @@ Warna dashboard akun teknisi disamakan dengan tema gelap-merah aplikasi owner (#
 menu aktif merah, kartu Ringkasan gelap dengan garis grafik merah, kartu "Upah saya" gradasi merah, kartu tugas & panel kanan gelap,
 jendela detail/form gelap. Hanya warna — data, tombol dan fungsi tidak diubah. Blok CSS `/*DSH-MERAH v1*/` di `teknisi/teknisi.html`
 (setelah `/*DSH-END*/`), plus warna grafik & ikon aktivitas di JS. Setelah mengubah: `python3 niscaya/teknisi/build_patch.py`.
+## Serial Number di setiap sheet data laptop (rilis 0046)
+Ekspor Excel kini memuat kolom **Serial Number** di semua sheet yang berisi data laptop: **STOK LAPTOP** (dipindah tepat setelah Tipe,
+menggantikan kolom "No Seri" di ujung kanan), **PENJUALAN** dan **BIAYA UNIT** (setelah Laptop, diambil dari data stok unit), serta
+**LAPORAN PENJUALAN** (sudah ada sejak 0044). Unit tanpa SN dibiarkan kosong. Impor tetap kompatibel: judul "Serial Number" dan "No Seri"
+sama-sama dibaca sebagai No Seri di STOK LAPTOP; kolom SN di PENJUALAN/BIAYA UNIT hanya informasi (diabaikan saat impor).
+Sumber: `imporaman/imporaman.js` (v3) → `python3 niscaya/imporaman/build_patch.py` → `patches/0030-impor-aman.py`.

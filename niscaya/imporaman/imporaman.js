@@ -1,4 +1,4 @@
-/*IMPOR-AMAN v2*/
+/*IMPOR-AMAN v3*/
 /* Impor Excel "gabung pintar" + cadangan otomatis di VPS + tombol kembalikan + riwayat impor, dan ekspor Excel yang rapi.
    - Unit dicocokkan lewat ID (atau No Seri). ID baru -> ditambahkan; ID lama -> hanya kolom yang terisi di Excel yang diperbarui.
    - Tidak pernah diubah oleh impor: status unit lama, DP, titipan & riwayatnya, biaya unit Sold, harga unit Sold, data penjualan lama.
@@ -433,22 +433,24 @@ function nmExportData(){
   const akhir = s => nmF('hargaAkhir', s, (Number(s.hargaJual)||0) - (Number(s.diskon)||0));
   const dpN = s => nmF('dpNominal', s, (s.dp && Number(s.dp.nominal)) || 0);
   const D = (v) => { const t = nmIso(v); if(!/^\d{4}-\d{2}-\d{2}$/.test(t)) return t || null; const [y, m, d] = t.split('-').map(Number); return new Date(Date.UTC(y, m - 1, d)); };
+  const unitById = {}; (DATA.stock || []).forEach(u => { unitById[String(u.id)] = u; });
+  const snOf = u => { const v = String((u && u.noSeri) == null ? '' : u.noSeri).trim(); return v && v !== '-' ? v : ''; };
   const stockCols = [
-    ['ID',10,'t'],['Merek',11,'t'],['Tipe',22,'t'],['Processor',18,'t'],['RAM',8,'t'],['SSD',10,'t'],['VGA',16,'t'],['Layar',10,'t'],['Stok',6,'n'],
+    ['ID',10,'t'],['Merek',11,'t'],['Tipe',22,'t'],['Serial Number',20,'t'],['Processor',18,'t'],['RAM',8,'t'],['SSD',10,'t'],['VGA',16,'t'],['Layar',10,'t'],['Stok',6,'n'],
     ['Harga Modal',15,'rp'],['Biaya Tambahan',15,'rp'],['Total Modal',15,'rp'],['Harga Jual',15,'rp'],['Diskon',13,'rp'],['Ket Diskon',16,'t'],['Harga Akhir',15,'rp'],['Untung',15,'rp'],
     ['Supplier',16,'t'],['Status',10,'st'],['Marketing',14,'t'],['DP Nama',16,'t'],['DP HP',15,'t'],['DP Nominal',14,'rp'],['DP Tanggal',12,'d'],['DP Catatan',18,'t'],['Sisa Bayar',14,'rp'],
-    ['Link Foto',24,'url'],['No Seri',18,'t'],['Tgl Audit',12,'d'],['Catatan',28,'t'],['Dititip Di',16,'t'],['Tgl Titip',12,'d'],['Harga Setor',14,'rp'],['Catatan Titip',18,'t']];
+    ['Link Foto',24,'url'],['Tgl Audit',12,'d'],['Catatan',28,'t'],['Dititip Di',16,'t'],['Tgl Titip',12,'d'],['Harga Setor',14,'rp'],['Catatan Titip',18,'t']];
   const stockRows = stock.map(s => { const L = s.lokasi || {}, P = s.dp || {};
-    return [s.id, s.merek, s.tipe, s.processor, s.ram, s.ssd, s.vga, s.layar, Number(s.stok)||0,
+    return [s.id, s.merek, s.tipe, snOf(s), s.processor, s.ram, s.ssd, s.vga, s.layar, Number(s.stok)||0,
       Number(s.hargaModal)||0, biayaOf(s), nmF('modalTotal', s, (Number(s.hargaModal)||0) + biayaOf(s)), Number(s.hargaJual)||0, Number(s.diskon)||0, s.diskonKet||'', akhir(s), nmF('untungUnit', s, akhir(s) - (Number(s.hargaModal)||0) - biayaOf(s)),
       s.supplier||'', s.status||'', s.marketing||'', P.nama||'', P.hp||'', dpN(s) || null, D(P.tanggal), P.catatan||'', dpN(s) ? nmF('sisaBayar', s, null) : null,
-      s.linkFoto||'', s.noSeri||'', D(s.tglAudit), s.catatan||'', L.toko||'', D(L.tanggal), Number(L.hargaSetor)||null, L.catatan||'']; });
+      s.linkFoto||'', D(s.tglAudit), s.catatan||'', L.toko||'', D(L.tanggal), Number(L.hargaSetor)||null, L.catatan||'']; });
   const sales = (DATA.sales || []).slice().sort((a, b) => String(b.tanggal||'').localeCompare(String(a.tanggal||'')));
-  const salesCols = [['Tanggal',12,'d'],['ID',10,'t'],['Laptop',30,'t'],['Pembeli',18,'t'],['HP Pembeli',15,'t'],['Marketing',14,'t'],['Modal',15,'rp'],['Biaya',13,'rp'],['Harga Normal',15,'rp'],['Diskon',13,'rp'],['DP',13,'rp'],['Jual',15,'rp'],['Untung',15,'rp']];
-  const salesRows = sales.map(s => [D(s.tanggal), s.id, s.laptop, s.pembeli||'', s.hp||'', s.marketing||'', Number(s.modal)||0, nmF('saleBiaya', s, Number(s.biaya)||0),
+  const salesCols = [['Tanggal',12,'d'],['ID',10,'t'],['Laptop',30,'t'],['Serial Number',20,'t'],['Pembeli',18,'t'],['HP Pembeli',15,'t'],['Marketing',14,'t'],['Modal',15,'rp'],['Biaya',13,'rp'],['Harga Normal',15,'rp'],['Diskon',13,'rp'],['DP',13,'rp'],['Jual',15,'rp'],['Untung',15,'rp']];
+  const salesRows = sales.map(s => [D(s.tanggal), s.id, s.laptop, snOf(unitById[String(s.id)]) || snOf(s), s.pembeli||'', s.hp||'', s.marketing||'', Number(s.modal)||0, nmF('saleBiaya', s, Number(s.biaya)||0),
     Number(s.hargaNormal) || (Number(s.jual||0) + Number(s.diskon||0)), Number(s.diskon)||0, Number(s.dp)||0, Number(s.jual)||0, Number(s.untung)||0]);
-  const biayaCols = [['ID',10,'t'],['Laptop',30,'t'],['Tanggal',12,'d'],['Jenis',16,'t'],['Keterangan',32,'t'],['Nominal',15,'rp']];
-  const biayaRows = []; stock.forEach(s => (s.biaya||[]).forEach(b => biayaRows.push([s.id, nmLaptop(s), D(b.tanggal), b.jenis||'', b.keterangan||'', Number(b.nominal)||0])));
+  const biayaCols = [['ID',10,'t'],['Laptop',30,'t'],['Serial Number',20,'t'],['Tanggal',12,'d'],['Jenis',16,'t'],['Keterangan',32,'t'],['Nominal',15,'rp']];
+  const biayaRows = []; stock.forEach(s => (s.biaya||[]).forEach(b => biayaRows.push([s.id, nmLaptop(s), snOf(s), D(b.tanggal), b.jenis||'', b.keterangan||'', Number(b.nominal)||0])));
   const supCols = [['Supplier',22,'t'],['WA',16,'t'],['Alamat',36,'t'],['Jumlah Stok',12,'n']];
   const supRows = (DATA.suppliers||[]).map(x => [x.supplier, x.wa||'', x.alamat||'', stock.filter(s => s.supplier === x.supplier && s.status !== 'Sold').length]);
   const mktCols = [['Nama',22,'t'],['WA',16,'t'],['Tipe Komisi',13,'t'],['Komisi',14,'kom']];
