@@ -1,4 +1,4 @@
-/*LAPORAN-KOMISI v2*/
+/*LAPORAN-KOMISI v3*/
 /* Rilis 0038 — Laporan pembagian komisi marketing (menu Marketing):
    pilih tanggal mulai & akhir + marketing, tabel per unit terjual (tanggal, ID, tipe, spek, SN, supplier, harga modal, harga akhir,
    marketing, komisi), rekap komisi per marketing, cetak/PDF dan ekspor Excel. Hanya membaca data — tidak mengubah apa pun. */
@@ -51,7 +51,7 @@
     var h = '<table' + (cetak ? ' class="t"' : '') + '><thead><tr><th>No</th><th>Tgl Terjual</th><th>ID</th><th>Tipe Laptop</th><th>Spek</th><th>Serial Number</th><th>Supplier</th><th>Harga Modal</th><th>Harga Akhir</th><th>Marketing</th><th>Komisi</th></tr></thead><tbody>';
     if (!rows.length) h += '<tr><td colspan="11" style="text-align:center;padding:18px" class="dim">Tidak ada penjualan pada periode ini.</td></tr>';
     rows.forEach(function(r, i){
-      h += '<tr' + (cetak ? '' : ' data-unit="' + E(r.id) + '" style="cursor:pointer" title="Klik untuk membuka unit"') + '><td>' + (i + 1) + '</td><td class="mono">' + E(tglID(r.tgl)) + '</td><td class="mono">' + E(r.id) +
+      h += '<tr' + '' + '><td>' + (i + 1) + '</td><td class="mono">' + E(tglID(r.tgl)) + '</td><td class="mono">' + E(r.id) +
         '</td><td><b>' + E(r.tipe) + '</b></td><td>' + E(r.spek) + '</td><td class="mono">' + E(r.sn) + '</td><td>' + E(r.supplier) +
         '</td><td class="mono" style="text-align:right">' + R(r.modal) + '</td><td class="mono" style="text-align:right">' + R(r.akhir) +
         '</td><td>' + E(r.mk) + '</td><td class="mono" style="text-align:right"><b>' + R(r.kom) + '</b></td></tr>';
@@ -134,8 +134,7 @@
       ulang(); }; });
     p.querySelector('#nmLkPrint').onclick = cetak;
     p.querySelector('#nmLkXls').onclick = excel;
-    p.querySelectorAll('tr[data-unit]').forEach(function(tr){ tr.onclick = function(){
-      if (typeof openStockModal === 'function' && (D().stock || []).some(function(x){ return String(x.id) === tr.dataset.unit; })) openStockModal(tr.dataset.unit); }; });
+    /* v3: tabel laporan hanya-baca — baris tidak membuka form edit unit */
   }
   function wrapped(c, ta){
     var r = orig.apply(this, arguments);
