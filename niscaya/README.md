@@ -205,3 +205,6 @@ Atas permintaan owner, QR label kini berisi **tautan unit saja**: `http://<serve
 Discan kamera HP → link langsung muncul, ketuk untuk membuka halaman unit (tipe, SN, spek, harga & status terbaru). Ubah harga tidak perlu cetak ulang.
 Scanner aplikasi tetap mengenali unit dari link (`scanCode`), label teks lama (rilis 0037) tetap terbaca. Label yang sudah tercetak perlu dicetak ulang agar berisi link.
 Fungsi teks lama disimpan sebagai `window.qrInfoTeks`. Sumber: `soldflow/soldflow.js` v6 → `python3 niscaya/soldflow/build_patch.py` → `patches/0023-alur-terjual.py`.
+## Label cetak tanpa harga (rilis 0050)
+Atas permintaan owner, hasil cetak label (kertas No. 121) tidak lagi memuat harga: hanya QR + ID di kiri, tipe, SN dan spek di kanan.
+Harga & status terbaru dilihat lewat link QR (`/tapi/u/<ID>`, rilis 0049). Sumber: `label121/label121.js` v4 → `python3 niscaya/label121/build_patch.py` → `patches/0034-label-121.py`.

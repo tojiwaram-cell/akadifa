@@ -1,7 +1,7 @@
-/*LABEL-121 v3*/
+/*LABEL-121 v4*/
 /* Cetak label QR ke kertas label No. 121 (38 x 75 mm, 10 label per lembar: 2 kolom x 5 baris).
    Membungkus printBarcodeLabels(): label yang dibuat aplikasi dikelompokkan per 10 ke halaman sendiri,
-   ditata seperti kartu di halaman Label (v2): QR berbingkai + ID di bawahnya di kiri; tipe, SN, spek, harga di kanan (v3: tanpa status). Posisi bisa disetel (geser atas/kiri, jarak kolom/baris) dan disimpan di
+   ditata seperti kartu di halaman Label (v2): QR berbingkai + ID di bawahnya di kiri; tipe, SN, spek di kanan (v3: tanpa status; v4/rilis 0050: tanpa harga — harga terbaru dilihat lewat link QR). Posisi bisa disetel (geser atas/kiri, jarak kolom/baris) dan disimpan di
    localStorage 'nm-label121'. Ada "Cetak uji garis" untuk kalibrasi di kertas HVS biasa. Data tidak diubah. */
 (function(){
   if (typeof printBarcodeLabels !== 'function' || printBarcodeLabels.__nm121v2) return;
@@ -72,8 +72,7 @@
     } else { price = E(txt(l, '.pl-price').replace(/^Harga Akhir:\s*/, '')); if (/Rp\s*0$|^$/.test(price)){ price = 'Tanya harga'; tanya = true; } }
     var d = document.createElement('div'); d.className = 'nm-l';
     d.innerHTML = '<div class="nm-l-q"><div class="nm-l-qb"></div><div class="nm-l-id">' + E(id) + '</div></div>' +
-      '<div class="nm-l-t"><div class="nm-l-m">' + E(model) + '</div><div class="nm-l-s">SN: ' + E(sn) + '</div><div class="nm-l-s">' + E(spec) + '</div>' +
-      '<div class="nm-l-p' + (tanya ? ' tanya' : '') + '">' + price + '</div></div>';
+      '<div class="nm-l-t"><div class="nm-l-m">' + E(model) + '</div><div class="nm-l-s">SN: ' + E(sn) + '</div><div class="nm-l-s">' + E(spec) + '</div></div>';
     if (q) d.querySelector('.nm-l-qb').appendChild(q);
     return d;
   }
@@ -121,12 +120,12 @@
     var box = document.getElementById('modalBox'), ov = document.getElementById('overlay'); if (!box || !ov) return;
     var c = cfg();
     function f(id, lbl, v, hint){ return '<div class="field"><label>' + lbl + '</label><input id="' + id + '" type="number" step="0.5" value="' + v + '"><div class="dim" style="font-size:11.5px;margin-top:3px">' + hint + '</div></div>'; }
-    var cells = ''; for (var i = 0; i < PER; i++) cells += '<div style="border:1.5px solid #2563eb;border-radius:4px;background:#eef4ff;display:flex;align-items:center;gap:4px;padding:3px;font-size:9px;color:#1e3a8a"><span style="width:26px;height:26px;background:repeating-conic-gradient(#1e3a8a 0 25%,#fff 0 50%) 0 0/6px 6px;flex:none"></span>ID · tipe<br>harga</div>';
+    var cells = ''; for (var i = 0; i < PER; i++) cells += '<div style="border:1.5px solid #2563eb;border-radius:4px;background:#eef4ff;display:flex;align-items:center;gap:4px;padding:3px;font-size:9px;color:#1e3a8a"><span style="width:26px;height:26px;background:repeating-conic-gradient(#1e3a8a 0 25%,#fff 0 50%) 0 0/6px 6px;flex:none"></span>ID · tipe<br>SN · spek</div>';
     box.innerHTML = '<h3>🏷 Kertas Label No. 121 — 38 × 75 mm, 10 label/lembar</h3>' +
       '<div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start">' +
         '<div style="width:170px;flex:none;background:#fffbe6;border:1px solid #e5d9a6;border-radius:6px;padding:6px;display:grid;grid-template-columns:1fr 1fr;grid-auto-rows:40px;gap:4px">' + cells + '</div>' +
         '<div style="flex:1;min-width:240px">' +
-          '<p class="dim" style="font-size:12.5px;line-height:1.55;margin:0 0 10px">Setiap 10 label = 1 lembar (2 kolom × 5 baris). Tampilan sama dengan kartu di halaman Label: QR + ID di kiri, tipe, SN, spek dan harga di kanan. ' +
+          '<p class="dim" style="font-size:12.5px;line-height:1.55;margin:0 0 10px">Setiap 10 label = 1 lembar (2 kolom × 5 baris). Tampilan sama dengan kartu di halaman Label: QR + ID di kiri, tipe, SN dan spek di kanan (tanpa harga). ' +
           'Saat mencetak pilih kertas <b>A4</b>, skala <b>100% / Default</b> (jangan "Fit to page"), margin <b>None</b>.</p>' +
           '<div class="form-grid">' +
             f('n121Top', 'Geser dari atas (mm)', c.top, 'Tambah bila cetakan terlalu ke atas') +
