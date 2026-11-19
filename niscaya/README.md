@@ -200,3 +200,8 @@ Sumber: `terbaru/terbaru.js` → `python3 niscaya/terbaru/build_patch.py` → `p
 Tabel rincian di panel **📄 Laporan Pembagian Komisi Marketing** kini hanya-baca: baris tidak lagi bisa diklik untuk membuka form edit unit
 (atribut `data-unit`, kursor tangan, dan handler `openStockModal` dihapus), sehingga data penjualan/stok tidak bisa terubah dari laporan ini.
 Edit unit tetap lewat menu Stok/Penjualan. Sumber: `komisi/komisi.js` (v3) → `python3 niscaya/komisi/build_patch.py` → `patches/0038-laporan-komisi.py`.
+## QR label kembali berisi link unit (rilis 0049)
+Atas permintaan owner, QR label kini berisi **tautan unit saja**: `http://<server>/tapi/u/<ID>` (mis. `http://129.226.222.36/tapi/u/LP425`).
+Discan kamera HP → link langsung muncul, ketuk untuk membuka halaman unit (tipe, SN, spek, harga & status terbaru). Ubah harga tidak perlu cetak ulang.
+Scanner aplikasi tetap mengenali unit dari link (`scanCode`), label teks lama (rilis 0037) tetap terbaca. Label yang sudah tercetak perlu dicetak ulang agar berisi link.
+Fungsi teks lama disimpan sebagai `window.qrInfoTeks`. Sumber: `soldflow/soldflow.js` v6 → `python3 niscaya/soldflow/build_patch.py` → `patches/0023-alur-terjual.py`.

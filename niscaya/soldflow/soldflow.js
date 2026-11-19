@@ -1,4 +1,4 @@
-/*SOLDFLOW v5*/
+/*SOLDFLOW v6*/
 /* Rilis 0023 — alur unit terjual:
    - QR label berisi tautan /tapi/u/<ID> (status & harga selalu terbaru); label lama (teks) tetap terbaca
    - Scan unit Sold/Booking/DP memunculkan peringatan besar
@@ -9,6 +9,8 @@
    - v5 (rilis 0037): QR label berisi TEKS info unit (tipe, SN, spek, harga akhir, WA) — discan kamera HP langsung tampil tanpa link.
      Harga ikut tercetak saat label dibuat; ubah harga = cetak ulang label. Baris 'ID: <ID>' tetap ada agar scanner aplikasi mengenali unit.
      Label lama (tautan /tapi/u/<ID>) tetap terbaca.
+   - v6 (rilis 0049): QR label kembali berisi TAUTAN unit saja (http://<server>/tapi/u/<ID>) — discan kamera HP langsung tampil link,
+     ketuk untuk membuka halaman unit (spek, SN, harga & status terbaru). Label teks lama tetap terbaca scanner aplikasi.
    - Cuplikan stok publik (tanpa modal/supplier/pembeli) dikirim ke server untuk halaman QR & katalog online */
 (function(){
   if(window.__soldFlow) return; window.__soldFlow = 1;
@@ -40,7 +42,10 @@
     L.push('WA: ' + WA_TOKO);
     return L.join('\n');
   }
-  if(has('qrText')) window.qrText = qrInfo;
+  /* v6: isi QR = tautan unit saja (qrInfo teks disimpan sebagai cadangan) */
+  function qrLink(s){ return unitUrl((s || {}).id || ''); }
+  window.qrInfoTeks = qrInfo;
+  if(has('qrText')) window.qrText = qrLink;
   if(has('scanCode')){
     var _scanCode = window.scanCode;
     window.scanCode = function(raw){
