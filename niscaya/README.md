@@ -224,8 +224,8 @@ Harga & status terbaru dilihat lewat link QR (`/tapi/u/<ID>`, rilis 0049). Sumbe
 
 ## Backup otomatis server + Google Drive (rilis 0053)
 Patch `0053-backup-otomatis.py` tidak mengubah aplikasi; ia memasang `/usr/local/bin/niscaya-backup` dan cron
-`/etc/cron.d/niscaya-backup` (tiap 3 jam). Arsip `.tar.gz` berisi `/var/lib/niscaya*`, `/opt/niscaya*`, `/etc/niscaya*`,
-`/var/www/niscaya`, `/etc/nginx`, unit systemd/cron/skrip niscaya → `/var/backups/niscaya` (120 terakhir ≈ 15 hari).
+`/etc/cron.d/niscaya-backup` (harian 02:00). Arsip `.tar.gz` berisi `/var/lib/niscaya*`, `/opt/niscaya*`, `/etc/niscaya*`,
+`/var/www/niscaya`, `/etc/nginx`, unit systemd/cron/skrip niscaya → `/var/backups/niscaya` (hanya yang terbaru; yang lama dihapus setelah backup baru lolos uji).
 rclone dipasang otomatis; bila remote `gdrive` sudah diatur (`sudo rclone config`, scope `drive.file`), tiap arsip dikirim ke
-Google Drive `NISCAYA-Backup` (disimpan 90 hari). Status: `http://<server>/backup-status.txt`, log `/var/log/niscaya-backup.log`.
+Google Drive `NISCAYA-Backup` (juga hanya yang terbaru). Status: `http://<server>/backup-status.txt`, log `/var/log/niscaya-backup.log`.
 Backup manual: `sudo niscaya-backup`.

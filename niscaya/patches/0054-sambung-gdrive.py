@@ -108,7 +108,7 @@ def main():
     exp = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(seconds=int(t.get("expires_in", 3600)) - 60)
     write_conf({"access_token": t["access_token"], "token_type": "Bearer", "refresh_token": t["refresh_token"],
                 "expiry": exp.strftime("%Y-%m-%dT%H:%M:%SZ")})
-    status("Status: TERSAMBUNG ke Google Drive (folder NISCAYA-Backup). Backup dikirim tiap 3 jam.")
+    status("Status: TERSAMBUNG ke Google Drive (folder NISCAYA-Backup). Backup dikirim tiap hari.")
     subprocess.Popen(["sh", "-c", "sleep 5; rclone mkdir gdrive:NISCAYA-Backup >/dev/null 2>&1; /usr/local/bin/niscaya-backup"],
                      stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
     print("0054: Google Drive tersambung")

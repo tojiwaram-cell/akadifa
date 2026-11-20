@@ -3,17 +3,18 @@
 # TIDAK mengubah file aplikasi (argv[1] hanya dibaca untuk memastikan ini file aplikasi).
 # Memasang:
 #   /usr/local/bin/niscaya-backup   -> arsip .tar.gz semua data & konfigurasi NISCAYA ke /var/backups/niscaya
-#   /etc/cron.d/niscaya-backup      -> tiap 3 jam; simpan 120 arsip terakhir (~15 hari) di server
+#   /etc/cron.d/niscaya-backup      -> SEKALI SEHARI (02:00); hanya backup TERBARU yang disimpan: backup lama
+#                                      dihapus setelah backup baru berhasil dibuat & lolos uji (permintaan owner)
 #   rclone (apt, sekali)            -> bila remote "gdrive" sudah diatur (sudo rclone config), arsip ikut dikirim
-#                                      ke Google Drive folder NISCAYA-Backup (disimpan 90 hari)
+#                                      ke Google Drive folder NISCAYA-Backup (di Drive juga hanya yang terbaru)
 # Status singkat (tanpa data): /var/www/niscaya/backup-status.txt
 import sys, os, subprocess
 
 SCRIPT = r'''#!/bin/bash
-# NISCAYA backup v1 (dipasang patch 0053) — aman dijalankan kapan saja; hanya MEMBACA data aplikasi.
+# NISCAYA backup v2 (dipasang patch 0053) — harian, simpan yang terbaru saja — aman dijalankan kapan saja; hanya MEMBACA data aplikasi.
 exec 9>/var/lock/niscaya-backup.lock; flock -n 9 || exit 0
 D=/var/backups/niscaya; S=/var/lib/niscaya-backup; LOG=/var/log/niscaya-backup.log
-REMOTE="gdrive:NISCAYA-Backup"; KEEP=120
+REMOTE="gdrive:NISCAYA-Backup"; KEEP=1
 mkdir -p "$D" "$S"; chmod 700 "$D"
 ts(){ date '+%F %T'; }
 F="$D/niscaya-$(date +%Y%m%d-%H%M).tar.gz"
@@ -25,12 +26,13 @@ if [ $rc -le 1 ] && tar tzf "$F.part" >/dev/null 2>&1; then
 else
   rm -f "$F.part"; echo "$(ts) GAGAL membuat arsip (tar rc=$rc)" >> "$LOG"; F=""
 fi
-ls -1t "$D"/niscaya-*.tar.gz 2>/dev/null | tail -n +$((KEEP+1)) | xargs -r rm -f
+# hapus backup lama HANYA bila backup baru berhasil
+[ -n "$F" ] && ls -1t "$D"/niscaya-*.tar.gz 2>/dev/null | tail -n +$((KEEP+1)) | xargs -r rm -f
 GD="belum tersambung (jalankan: sudo rclone config, nama remote: gdrive)"
 if [ -n "$F" ] && command -v rclone >/dev/null 2>&1 && rclone listremotes 2>/dev/null | grep -qx 'gdrive:'; then
   if rclone copy "$F" "$REMOTE" >> "$LOG" 2>&1; then
     GD="tersambung, terakhir terkirim $(ts)"; echo "$(ts) terkirim ke $REMOTE" >> "$LOG"
-    rclone delete "$REMOTE" --min-age 90d >> "$LOG" 2>&1 || true
+    rclone delete "$REMOTE" --exclude "$(basename "$F")" >> "$LOG" 2>&1 || true
   else
     GD="GAGAL kirim $(ts) - cek: sudo tail /var/log/niscaya-backup.log"; echo "$(ts) GAGAL kirim ke $REMOTE" >> "$LOG"
   fi
@@ -38,14 +40,14 @@ fi
 N=$(ls -1 "$D"/niscaya-*.tar.gz 2>/dev/null | wc -l)
 L=$(ls -1t "$D"/niscaya-*.tar.gz 2>/dev/null | head -1 | xargs -r basename)
 if [ -d /var/www/niscaya ]; then
-  printf 'NISCAYA backup otomatis (tiap 3 jam)\nDicek: %s\nBackup di server: %s file, terbaru: %s\nGoogle Drive: %s\n' \
+  printf 'NISCAYA backup otomatis (harian 02:00, simpan terbaru)\nDicek: %s\nBackup di server: %s file, terbaru: %s\nGoogle Drive: %s\n' \
     "$(ts)" "$N" "${L:-belum ada}" "$GD" > /var/www/niscaya/backup-status.txt.new
   chmod 644 /var/www/niscaya/backup-status.txt.new; mv /var/www/niscaya/backup-status.txt.new /var/www/niscaya/backup-status.txt
 fi
 tail -n 500 "$LOG" > "$LOG.tmp" 2>/dev/null && mv "$LOG.tmp" "$LOG"
 exit 0
 '''
-CRON = "0 */3 * * * root /usr/local/bin/niscaya-backup >/dev/null 2>&1\n"
+CRON = "0 2 * * * root /usr/local/bin/niscaya-backup >/dev/null 2>&1\n"
 
 
 def put(path, data, mode):
@@ -88,7 +90,7 @@ def main():
     if not os.path.exists(first) or changed:
         open(first, "w").close()
         bg("sleep 20; /usr/local/bin/niscaya-backup")
-        print("0053: backup otomatis dipasang (server tiap 3 jam + Google Drive bila tersambung)")
+        print("0053: backup otomatis harian dipasang (server + Google Drive bila tersambung)")
 
 
 try:
