@@ -229,3 +229,9 @@ Patch `0053-backup-otomatis.py` tidak mengubah aplikasi; ia memasang `/usr/local
 rclone dipasang otomatis; bila remote `gdrive` sudah diatur (`sudo rclone config`, scope `drive.file`), tiap arsip dikirim ke
 Google Drive `NISCAYA-Backup` (juga hanya yang terbaru). Status: `http://<server>/backup-status.txt`, log `/var/log/niscaya-backup.log`.
 Backup manual: `sudo niscaya-backup`.
+## Tukar Tambah (rilis 0055)
+Menu baru **⇆ Tukar Tambah** (setelah Penjualan). Satu transaksi: unit dari stok dijual (nota penjualan biasa — omzet = harga final penuh,
+laba = final − modal − biaya) **dan** laptop lama pelanggan masuk Stok sebagai unit baru (ID berikutnya, Ready, modal = nilai taksiran,
+supplier `TUKAR TAMBAH`). Ringkasan menghitung uang tambahan = final − nilai tukar − DP (bila minus, toko yang membayar).
+Riwayat dibaca dari `sales[].tukarTambah` & `stock[].tukarTambah` (tanpa kunci baru di DATA). Ada cetak nota A5 dan pembatalan
+(hanya bila unit tukar belum terjual). Sumber: `tukar/tukar.js` → `python3 niscaya/tukar/build_patch.py` → `patches/0055-tukar-tambah.py`.
