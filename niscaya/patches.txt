@@ -28,3 +28,4 @@
 0043-pulih-otomatis.py
 0047-stok-terbaru.py
 0051-tanggal-terjual.py
+0053-backup-otomatis.py

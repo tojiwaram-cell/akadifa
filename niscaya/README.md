@@ -221,3 +221,11 @@ Harga & status terbaru dilihat lewat link QR (`/tapi/u/<ID>`, rilis 0049). Sumbe
 - Form **Catat Penjualan**: label "📅 Tanggal Jual" + tombol Hari ini / Kemarin + keterangan "Input susulan" bila tanggal lampau;
   tanggal kosong = hari ini, melewati hari ini ditolak.
 - Sumber: `tgljual/tgljual.js` v2 → `python3 niscaya/tgljual/build_patch.py` → `patches/0051-tanggal-terjual.py` (blok lama v1 diganti otomatis).
+
+## Backup otomatis server + Google Drive (rilis 0053)
+Patch `0053-backup-otomatis.py` tidak mengubah aplikasi; ia memasang `/usr/local/bin/niscaya-backup` dan cron
+`/etc/cron.d/niscaya-backup` (tiap 3 jam). Arsip `.tar.gz` berisi `/var/lib/niscaya*`, `/opt/niscaya*`, `/etc/niscaya*`,
+`/var/www/niscaya`, `/etc/nginx`, unit systemd/cron/skrip niscaya → `/var/backups/niscaya` (120 terakhir ≈ 15 hari).
+rclone dipasang otomatis; bila remote `gdrive` sudah diatur (`sudo rclone config`, scope `drive.file`), tiap arsip dikirim ke
+Google Drive `NISCAYA-Backup` (disimpan 90 hari). Status: `http://<server>/backup-status.txt`, log `/var/log/niscaya-backup.log`.
+Backup manual: `sudo niscaya-backup`.
