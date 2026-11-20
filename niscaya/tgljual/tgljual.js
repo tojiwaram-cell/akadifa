@@ -1,6 +1,9 @@
-/*NM-TGLJUAL v1*/
+/*NM-TGLJUAL v2*/
 /* Tanggal terjual (Sold) per unit.
-   - Form Edit Laptop: kolom "Tgl Terjual" muncul saat Status = Sold, terisi dari tanggal nota penjualan.
+   - v2: Form Edit Laptop: kolom "📅 Tanggal Jual" SELALU tampil tepat di bawah Status, dengan tombol Hari ini / Kemarin.
+     Mengisi tanggal pada unit yang belum Sold = status otomatis Sold (lalu form Catat Penjualan terbuka dengan tanggal itu).
+     Form Catat Penjualan: label "📅 Tanggal Jual" + tombol Hari ini / Kemarin, tidak boleh melewati hari ini (input susulan).
+   - Tanggal terisi dari tanggal nota penjualan.
      Mengubahnya memperbarui tanggal di nota penjualan (DATA.sales[].tanggal), jadi Dashboard, Penjualan Harian,
      Laporan Komisi & ekspor Excel ikut memakai tanggal itu. Unit yang baru dijadikan Sold: tanggal dibawa ke form Catat Penjualan.
    - Papan (Kanban) & Tabel Stok: unit Sold menampilkan tanggal terjualnya.
@@ -20,6 +23,24 @@
     catch(_){ return null; }
   }
   function unit(id){ try{ return (DATA.stock || []).find(function(s){ return String(s.id) === String(id); }) || null; }catch(_){ return null; } }
+  function kemarin(){
+    var m = hariIni().match(/^(\d{4})-(\d{2})-(\d{2})/), d = new Date(Number(m[1]), Number(m[2])-1, Number(m[3]) - 1);
+    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  }
+  function chipHtml(){
+    var gaya = 'padding:5px 8px;font-size:11px;white-space:nowrap';
+    return '<button type="button" class="btn nm-chip" data-tgl="0" style="' + gaya + '">Hari ini</button>'
+         + '<button type="button" class="btn nm-chip" data-tgl="1" style="' + gaya + '">Kemarin</button>';
+  }
+  function pasangChip(box, inp){
+    box.querySelectorAll('.nm-chip').forEach(function(b){
+      b.onclick = function(ev){
+        ev.preventDefault();
+        inp.value = b.getAttribute('data-tgl') === '1' ? kemarin() : hariIni();
+        try{ inp.dispatchEvent(new Event('input', {bubbles:true})); inp.dispatchEvent(new Event('change', {bubbles:true})); }catch(_){}
+      };
+    });
+  }
   window.nmTglTerjual = function(id){ var n = notaUnit(id); return n && n.tanggal ? String(n.tanggal).slice(0,10) : ''; };
 
   function pasang(nama, buat){
@@ -42,16 +63,37 @@
         var awal = nota && nota.tanggal ? String(nota.tanggal).slice(0,10) : '';
         var wrap = document.createElement('div');
         wrap.className = 'field'; wrap.id = 'f_tglJualWrap';
-        wrap.innerHTML = '<label>Tgl Terjual (Sold)</label><input id="f_tglJual" type="date" max="' + hariIni() + '">';
-        var fAudit = audit.closest('.field') || audit.parentNode;
-        fAudit.parentNode.insertBefore(wrap, fAudit.nextSibling);
-        var inp = $('f_tglJual'); inp.value = awal;
-        var sinkron = function(){
-          var sold = st.value === 'Sold';
-          wrap.style.display = sold ? '' : 'none';
-          if(sold && !inp.value) inp.value = hariIni();
+        wrap.innerHTML = '<label>📅 Tanggal Jual</label>'
+          + '<div style="display:flex;gap:6px;align-items:center">'
+          + '<input id="f_tglJual" type="date" max="' + hariIni() + '" style="flex:1;min-width:0">'
+          + chipHtml('f_tglJual') + '</div>'
+          + '<div class="dim" id="f_tglJualInfo" style="font-size:11px;margin-top:3px"></div>';
+        /* v2: selalu tampil, tepat setelah kolom Status */
+        var fSt = st.closest('.field') || st.parentNode;
+        fSt.parentNode.insertBefore(wrap, fSt.nextSibling);
+        var inp = $('f_tglJual'), info = $('f_tglJualInfo'); inp.value = awal;
+        pasangChip(wrap, inp);
+        var tulisInfo = function(){
+          info.textContent = st.value === 'Sold'
+            ? (inp.value ? 'Terjual ' + fmt(inp.value) + (inp.value < hariIni() ? ' (input susulan)' : '') : 'Pilih tanggal laptop ini laku')
+            : 'Kosongkan bila belum laku. Isi tanggal (boleh kemarin/lalu) → status otomatis Sold';
         };
-        st.addEventListener('change', sinkron); sinkron();
+        var sinkron = function(){
+          if(st.value === 'Sold'){ if(!inp.value) inp.value = hariIni(); }
+          else inp.value = '';
+          tulisInfo();
+        };
+        st.addEventListener('change', sinkron);
+        var isiTgl = function(){
+          if(inp.value && st.value !== 'Sold'){
+            st.value = 'Sold';
+            try{ st.dispatchEvent(new Event('change', {bubbles:true})); }catch(_){}
+          }
+          tulisInfo();
+        };
+        inp.addEventListener('change', isiTgl); inp.addEventListener('input', isiTgl);
+        if(st.value === 'Sold' && !inp.value) inp.value = hariIni();
+        tulisInfo();
 
         var simpanAsli = btn.onclick;
         if(typeof simpanAsli === 'function'){
@@ -78,6 +120,49 @@
           };
         }
       }catch(e){ console.warn('NM-TGLJUAL form', e); }
+      return r;
+    };
+  });
+
+  /* ---------- Form Catat Penjualan (v2) ---------- */
+  pasang('openSaleModal', function(asli){
+    return function(){
+      var r = asli.apply(this, arguments);
+      try{
+        var $ = function(x){ return document.getElementById(x); };
+        var inp = $('s_tanggal'), btn = $('saveSale');
+        if(!inp || inp.getAttribute('data-nm-tgl')) return r;
+        inp.setAttribute('data-nm-tgl', '1');
+        inp.max = hariIni();
+        var field = inp.closest('.field') || inp.parentNode;
+        var lbl = field.querySelector('label'); if(lbl) lbl.textContent = '📅 Tanggal Jual';
+        var baris = document.createElement('div');
+        baris.style.cssText = 'display:flex;gap:6px;align-items:center';
+        inp.parentNode.insertBefore(baris, inp);
+        inp.style.flex = '1'; inp.style.minWidth = '0';
+        baris.appendChild(inp);
+        baris.insertAdjacentHTML('beforeend', chipHtml());
+        var info = document.createElement('div');
+        info.className = 'dim'; info.style.cssText = 'font-size:11px;margin-top:3px';
+        field.appendChild(info);
+        var tulis = function(){
+          info.textContent = !inp.value ? 'Pilih tanggal laptop laku'
+            : inp.value < hariIni() ? 'Input susulan — tercatat terjual ' + fmt(inp.value)
+            : 'Terjual hari ini';
+        };
+        inp.addEventListener('input', tulis); inp.addEventListener('change', tulis);
+        pasangChip(baris, inp); tulis();
+        /* nilai yang dibawa dari form Edit Laptop diisi setelah modal terbuka → perbarui teks */
+        setTimeout(tulis, 0);
+        if(btn && typeof btn.onclick === 'function'){
+          var simpanAsli = btn.onclick;
+          btn.onclick = function(ev){
+            if(!inp.value) inp.value = hariIni();
+            if(inp.value > hariIni()){ alert('Tanggal jual tidak boleh melewati hari ini'); return; }
+            return simpanAsli.call(this, ev);
+          };
+        }
+      }catch(e){ console.warn('NM-TGLJUAL jual', e); }
       return r;
     };
   });

@@ -214,3 +214,10 @@ Harga & status terbaru dilihat lewat link QR (`/tapi/u/<ID>`, rilis 0049). Sumbe
   Tidak boleh melewati hari ini. Unit yang baru dijadikan Sold: tanggal yang dipilih dibawa ke form **Catat Penjualan** (`s_tanggal`).
 - **Papan** (kartu Sold: "🗓 Terjual 18 Nov 2026") dan **Tabel** Stok (di bawah status) menampilkan tanggal terjual.
 - Tidak ada field baru di data stok — sumber tanggal tetap nota penjualan. Sumber: `tgljual/tgljual.js` → `python3 niscaya/tgljual/build_patch.py` → `patches/0051-tanggal-terjual.py`.
+## Tanggal Jual selalu tampil + input susulan (rilis 0052)
+- Form **Edit Laptop**: kolom **📅 Tanggal Jual** kini **selalu tampil** tepat di bawah Status (v1 tersembunyi sampai Status = Sold),
+  dengan tombol **Hari ini / Kemarin**. Mengisi tanggal pada unit yang belum Sold → status otomatis Sold → setelah Simpan, form
+  **Catat Penjualan** terbuka dengan tanggal itu. Status diganti dari Sold → tanggal dikosongkan.
+- Form **Catat Penjualan**: label "📅 Tanggal Jual" + tombol Hari ini / Kemarin + keterangan "Input susulan" bila tanggal lampau;
+  tanggal kosong = hari ini, melewati hari ini ditolak.
+- Sumber: `tgljual/tgljual.js` v2 → `python3 niscaya/tgljual/build_patch.py` → `patches/0051-tanggal-terjual.py` (blok lama v1 diganti otomatis).
