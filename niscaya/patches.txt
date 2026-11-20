@@ -27,3 +27,4 @@
 0040-komisi-terpisah.py
 0043-pulih-otomatis.py
 0047-stok-terbaru.py
+0051-tanggal-terjual.py

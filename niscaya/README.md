@@ -208,3 +208,9 @@ Fungsi teks lama disimpan sebagai `window.qrInfoTeks`. Sumber: `soldflow/soldflo
 ## Label cetak tanpa harga (rilis 0050)
 Atas permintaan owner, hasil cetak label (kertas No. 121) tidak lagi memuat harga: hanya QR + ID di kiri, tipe, SN dan spek di kanan.
 Harga & status terbaru dilihat lewat link QR (`/tapi/u/<ID>`, rilis 0049). Sumber: `label121/label121.js` v4 → `python3 niscaya/label121/build_patch.py` → `patches/0034-label-121.py`.
+## Tanggal terjual (Sold) (rilis 0051)
+- Form **Edit Laptop**: kolom **Tgl Terjual (Sold)** di samping Tgl Audit, muncul hanya saat Status = Sold. Terisi dari tanggal nota penjualan unit;
+  mengubahnya memperbarui `DATA.sales[].tanggal`, jadi Dashboard, Penjualan Harian, Laporan Komisi, kolom Sold Kanban (bulan ini) & ekspor Excel ikut berubah.
+  Tidak boleh melewati hari ini. Unit yang baru dijadikan Sold: tanggal yang dipilih dibawa ke form **Catat Penjualan** (`s_tanggal`).
+- **Papan** (kartu Sold: "🗓 Terjual 18 Nov 2026") dan **Tabel** Stok (di bawah status) menampilkan tanggal terjual.
+- Tidak ada field baru di data stok — sumber tanggal tetap nota penjualan. Sumber: `tgljual/tgljual.js` → `python3 niscaya/tgljual/build_patch.py` → `patches/0051-tanggal-terjual.py`.
