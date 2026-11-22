@@ -1,4 +1,4 @@
-/*NM-NOTA-JUAL v3*/
+/*NM-NOTA-JUAL v4*/
 /* Rilis 0058 v3 — desain nota mengikuti nota cetak NISCAYA MAKASSAR (header navy-emas, tabel 5 baris,
    keterangan tetap, Sub Total/Diskon/Total Harga, tanda tangan, footer alamat & WA). Struk 80 mm tetap format ringkas.
    Rilis 0058 — Cetak Nota Penjualan untuk unit yang sudah terjual (Sold).
@@ -36,21 +36,52 @@
         <td class="r">${x?rp(x.harga):''}</td><td class="r">${x?rp((Number(x.unit)||1)*(Number(x.harga)||0)):''}</td></tr>`;
     }).join('');
     const chk = '<span class="cb">&#10003;</span>';
-    const skyline = `<svg class="sky" viewBox="0 0 400 120" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">
-      <defs><linearGradient id="sg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1b2a44"/><stop offset=".55" stop-color="#3a4660"/><stop offset=".8" stop-color="#c98a3c"/><stop offset="1" stop-color="#f1c27a"/></linearGradient>
-      <linearGradient id="wg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d79a4a" stop-opacity=".75"/><stop offset="1" stop-color="#14203a"/></linearGradient></defs>
-      <rect width="400" height="120" fill="url(#sg)"/>
-      <g fill="#0f1a2e">
-        <rect x="10" y="62" width="14" height="30"/><rect x="28" y="50" width="10" height="42"/><rect x="42" y="68" width="18" height="24"/>
-        <path d="M150 92 L150 70 Q170 48 190 70 L190 92 Z"/><rect x="138" y="44" width="4" height="48"/><path d="M136 46 L140 34 L144 46Z"/>
-        <rect x="198" y="44" width="4" height="48"/><path d="M196 46 L200 34 L204 46Z"/><path d="M160 64 Q170 40 180 64Z"/>
-        <path d="M232 92 L252 40 L262 40 L282 92Z" opacity=".9"/><rect x="290" y="56" width="12" height="36"/><rect x="306" y="40" width="9" height="52"/>
-        <rect x="320" y="60" width="16" height="32"/><rect x="340" y="48" width="8" height="44"/><rect x="352" y="66" width="20" height="26"/><rect x="376" y="54" width="12" height="38"/>
-        <rect x="0" y="90" width="400" height="4"/>
-      </g>
-      <rect y="94" width="400" height="26" fill="url(#wg)"/>
-      <g stroke="#f3cf8e" stroke-width=".6" opacity=".55"><line x1="140" y1="100" x2="210" y2="100"/><line x1="150" y1="106" x2="200" y2="106"/><line x1="160" y1="112" x2="190" y2="112"/></g>
-    </svg>`;
+    const skyline = `<svg class="sky" viewBox="0 0 400 130" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="sg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#16223b"/><stop offset=".45" stop-color="#2e3a57"/><stop offset=".75" stop-color="#b9783a"/><stop offset="1" stop-color="#f2c47c"/></linearGradient>
+      <linearGradient id="wg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c88a45"/><stop offset=".5" stop-color="#3b3f55"/><stop offset="1" stop-color="#121c33"/></linearGradient>
+      <radialGradient id="sun" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#fff2c9"/><stop offset=".45" stop-color="#ffd27a" stop-opacity=".85"/><stop offset="1" stop-color="#f5a742" stop-opacity="0"/></radialGradient>
+      <linearGradient id="sl" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#f7e4bb"/><stop offset="1" stop-color="#d9b47a"/></linearGradient>
+    </defs>
+    <rect width="400" height="130" fill="url(#sg)"/>
+    <circle cx="170" cy="94" r="26" fill="url(#sun)"/><circle cx="170" cy="94" r="8" fill="#ffe9b0"/>
+    <g fill="#1d2840" opacity=".55">
+      <path d="M0 96 L0 88 L14 88 L14 82 L22 82 L22 86 L34 86 L34 79 L40 79 L40 86 L58 86 L58 83 L74 83 L74 89 L96 89 L100 92 L110 96 Z"/>
+    </g>
+    <rect y="96" width="400" height="34" fill="url(#wg)"/>
+    <g stroke="#ffd994" stroke-linecap="round" opacity=".6">
+      <line x1="152" y1="100" x2="188" y2="100" stroke-width=".9"/><line x1="158" y1="105" x2="182" y2="105" stroke-width=".8"/><line x1="163" y1="110" x2="177" y2="110" stroke-width=".7"/><line x1="166" y1="115" x2="174" y2="115" stroke-width=".6"/>
+    </g>
+    <!-- Masjid Terapung Amirul Mukminin, Pantai Losari -->
+    <g transform="translate(-8 0) translate(398 96) scale(.85) translate(-398 -96)">
+    <g fill="#0f182c">
+      <rect x="318" y="96" width="70" height="2.2"/>
+      <rect x="322" y="98" width="2" height="7"/><rect x="334" y="98" width="2" height="7"/><rect x="346" y="98" width="2" height="7"/><rect x="358" y="98" width="2" height="7"/><rect x="370" y="98" width="2" height="7"/><rect x="382" y="98" width="2" height="7"/>
+      <rect x="324" y="80" width="58" height="16"/>
+      <path d="M326 80 Q340 56 354 80Z"/><path d="M352 80 Q366 56 380 80Z"/>
+      <rect x="339.4" y="60" width="1.2" height="6"/><rect x="365.4" y="60" width="1.2" height="6"/>
+      <rect x="392" y="54" width="5" height="42"/><path d="M391 55 L394.5 44 L398 55Z"/><rect x="390.5" y="66" width="8" height="1.6"/>
+    </g>
+    <g fill="#f3c97e" opacity=".85"><rect x="330" y="86" width="3" height="5" rx="1.5"/><rect x="338" y="86" width="3" height="5" rx="1.5"/><rect x="346" y="86" width="3" height="5" rx="1.5"/><rect x="357" y="86" width="3" height="5" rx="1.5"/><rect x="365" y="86" width="3" height="5" rx="1.5"/><rect x="373" y="86" width="3" height="5" rx="1.5"/></g>
+    </g>
+    <!-- Kapal Pinisi -->
+    <g transform="translate(238 101) scale(.72) translate(-186 -101)">
+      <path d="M186 77 L229 64" stroke="#0f182c" stroke-width="1"/>
+      <path d="M232 98 L232 30" stroke="#0f182c" stroke-width="1.8"/><path d="M262 98 L262 36" stroke="#0f182c" stroke-width="1.6"/>
+      <path d="M231 33 L190 76 L231 76Z" fill="url(#sl)" opacity=".95"/>
+      <path d="M230 42 L200 77 L230 77Z" fill="#f2dcae"/>
+      <path d="M229 52 L211 78 L229 78Z" fill="#e8cb92"/>
+      <path d="M233 34 L258 40 L258 82 L233 84Z" fill="url(#sl)"/>
+      <path d="M263 38 L284 44 L286 84 L263 85Z" fill="url(#sl)"/>
+      <path d="M233 31 L255 36 L233 40Z" fill="#f2dcae"/><path d="M263 37 L280 41 L263 44Z" fill="#f2dcae"/>
+      <g stroke="#8a6630" stroke-width=".35" opacity=".7"><line x1="233" y1="50" x2="258" y2="54"/><line x1="233" y1="66" x2="258" y2="68"/><line x1="263" y1="54" x2="285" y2="58"/><line x1="263" y1="69" x2="286" y2="71"/></g>
+      <path d="M200 86 L296 86 L300 80 L304 80 L300 92 Q290 100 252 100 Q218 100 206 94 Z" fill="#2a1d14"/>
+      <path d="M200 86 L296 86 L297 88.5 L202 88.5Z" fill="#c9a14a"/>
+      <path d="M292 80 L304 80 L304 86 L292 86Z" fill="#2a1d14"/>
+      <path d="M206 94 Q218 100 252 100 Q290 100 300 92" fill="none" stroke="#0b1222" stroke-width="1.2"/>
+    </g>
+    <g fill="#0f182c" opacity=".35" transform="translate(238 101) scale(.72) translate(-186 -101)"><path d="M208 101 Q250 107 298 101 L290 103 Q250 110 214 103Z"/></g>
+  </svg>`;
     return `<!DOCTYPE html><html lang="id"><head><meta charset="UTF-8"><title>Nota ${e(d.noNota)}</title>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Great+Vibes&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
@@ -69,7 +100,6 @@
   .hd .tag{position:absolute;left:4mm;top:9mm;z-index:2;color:#f4e3b8}
   .hd .tag .s{font-family:'Great Vibes',cursive;font-size:17pt;line-height:1}
   .hd .tag .u{font-family:Cinzel,serif;font-size:5.4pt;letter-spacing:.9mm;margin-top:1mm;color:#e7c98a}
-  .hd .slogan{position:absolute;right:4mm;top:4mm;z-index:2;font-family:'Great Vibes',cursive;color:#fff;font-size:11.5pt;line-height:1.05;text-align:right;transform:rotate(-8deg)}
   .goldwave{height:3.2mm;background:linear-gradient(90deg,#8a6420,#e9c977 30%,#fff1c8 50%,#d7ac55 70%,#8a6420);clip-path:polygon(0 0,100% 0,100% 40%,70% 100%,30% 30%,0 90%)}
   /* body */
   .bd{flex:1;padding:4mm 6mm 2mm;position:relative}
@@ -138,7 +168,6 @@
       <div class="logo">${d.logo?`<img src="${d.logo}" alt="NISCAYA MAKASSAR" onerror="this.style.display='none'">`:''}</div>
       <div class="art">${skyline}
         <div class="tag"><div class="s">Laptop Second Premium</div><div class="u">Termurah di Sulawesi Selatan</div></div>
-        <div class="slogan">Laptop Hebat<br>Mimpi Dekat</div>
       </div>
     </div>
     <div class="goldwave"></div>
