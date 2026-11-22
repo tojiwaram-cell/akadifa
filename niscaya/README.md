@@ -245,3 +245,8 @@ Status baru **Belum Ready** = unit sudah tercatat di stok tetapi **belum bisa di
 - Excel: impor mengenali teks "Belum Ready"; ekspor STOK LAPTOP berwarna oranye & dikelompokkan setelah Ready, ringkasan memuat jumlahnya.
 Sumber: `belumready/belumready.js` → `python3 niscaya/belumready/build_patch.py` → `patches/0056-belum-ready.py` (edit teks idempoten + blok `/*NM-BELUM-READY v1*/`);
 juga `dash2/dashfungsi.js` v2, `tukar/tukar.js` v2, `imporaman/imporaman.js` v5, `teknisi/server.py` (halaman unit).
+## Label QR untuk unit Belum Ready (rilis 0057)
+Unit **Belum Ready** tetap muncul di menu **Label QR** (badge oranye "Belum Ready" di kartu) dan bisa dicetak. Di hasil cetak kertas No. 121,
+khusus unit Belum Ready ada tanda oranye **BELUM READY** di bawah spek; unit status lain tetap tanpa status. Link QR (`/tapi/u/<ID>`) menampilkan
+"🔧 Sedang disiapkan" dan otomatis berubah jadi "Tersedia" begitu status diganti Ready (label boleh dicetak ulang tanpa tanda).
+Sumber: `label121/label121.js` v5 → `python3 niscaya/label121/build_patch.py` → `patches/0034-label-121.py`.
