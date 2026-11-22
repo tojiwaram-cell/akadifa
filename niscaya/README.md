@@ -255,6 +255,6 @@ Unit yang sudah terjual kini bisa dicetak notanya:
 - Menu **Penjualan**: tombol **🧾** di setiap baris (di samping ✕).
 - Form **Edit Laptop** unit Sold yang punya nota penjualan: tombol **🧾 Cetak Nota**.
 Sebelum cetak muncul pilihan ukuran kertas (A5 / A4 / struk thermal 80 mm), metode bayar, garansi (diingat di browser) dan catatan.
-Isi nota: logo & nama toko, No. `NJ-YYYYMMDD-<ID>`, tanggal, pembeli/HP/marketing, unit (kode, SN, spek), harga, diskon, harga final,
+Isi nota: logo, nama toko, alamat (Ruko New Zamrud, Jl. A.P. Pettarani Blok E18) & WA 0821-8942-735 (v2), No. `NJ-YYYYMMDD-<ID>`, tanggal, pembeli/HP/marketing, unit (kode, SN, spek), harga, diskon, harga final,
 DP, potongan tukar tambah, pelunasan, cap LUNAS, kolom tanda tangan. Hanya membaca DATA.sales + DATA.stock — data tidak diubah.
 Sumber: `nota/nota.js` → `python3 niscaya/nota/build_patch.py` → `patches/0058-nota-penjualan.py`.
