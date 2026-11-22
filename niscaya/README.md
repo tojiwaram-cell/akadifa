@@ -250,3 +250,11 @@ Unit **Belum Ready** tetap muncul di menu **Label QR** (badge oranye "Belum Read
 khusus unit Belum Ready ada tanda oranye **BELUM READY** di bawah spek; unit status lain tetap tanpa status. Link QR (`/tapi/u/<ID>`) menampilkan
 "🔧 Sedang disiapkan" dan otomatis berubah jadi "Tersedia" begitu status diganti Ready (label boleh dicetak ulang tanpa tanda).
 Sumber: `label121/label121.js` v5 → `python3 niscaya/label121/build_patch.py` → `patches/0034-label-121.py`.
+## Cetak Nota Penjualan (rilis 0058)
+Unit yang sudah terjual kini bisa dicetak notanya:
+- Menu **Penjualan**: tombol **🧾** di setiap baris (di samping ✕).
+- Form **Edit Laptop** unit Sold yang punya nota penjualan: tombol **🧾 Cetak Nota**.
+Sebelum cetak muncul pilihan ukuran kertas (A5 / A4 / struk thermal 80 mm), metode bayar, garansi (diingat di browser) dan catatan.
+Isi nota: logo & nama toko, No. `NJ-YYYYMMDD-<ID>`, tanggal, pembeli/HP/marketing, unit (kode, SN, spek), harga, diskon, harga final,
+DP, potongan tukar tambah, pelunasan, cap LUNAS, kolom tanda tangan. Hanya membaca DATA.sales + DATA.stock — data tidak diubah.
+Sumber: `nota/nota.js` → `python3 niscaya/nota/build_patch.py` → `patches/0058-nota-penjualan.py`.
