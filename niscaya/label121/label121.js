@@ -1,7 +1,7 @@
-/*LABEL-121 v4*/
+/*LABEL-121 v5*/
 /* Cetak label QR ke kertas label No. 121 (38 x 75 mm, 10 label per lembar: 2 kolom x 5 baris).
    Membungkus printBarcodeLabels(): label yang dibuat aplikasi dikelompokkan per 10 ke halaman sendiri,
-   ditata seperti kartu di halaman Label (v2): QR berbingkai + ID di bawahnya di kiri; tipe, SN, spek di kanan (v3: tanpa status; v4/rilis 0050: tanpa harga — harga terbaru dilihat lewat link QR). Posisi bisa disetel (geser atas/kiri, jarak kolom/baris) dan disimpan di
+   ditata seperti kartu di halaman Label (v2): QR berbingkai + ID di bawahnya di kiri; tipe, SN, spek di kanan (v3: tanpa status; v4/rilis 0050: tanpa harga — harga terbaru dilihat lewat link QR; v5/rilis 0057: unit Belum Ready diberi tanda BELUM READY). Posisi bisa disetel (geser atas/kiri, jarak kolom/baris) dan disimpan di
    localStorage 'nm-label121'. Ada "Cetak uji garis" untuk kalibrasi di kertas HVS biasa. Data tidak diubah. */
 (function(){
   if (typeof printBarcodeLabels !== 'function' || printBarcodeLabels.__nm121v2) return;
@@ -72,7 +72,8 @@
     } else { price = E(txt(l, '.pl-price').replace(/^Harga Akhir:\s*/, '')); if (/Rp\s*0$|^$/.test(price)){ price = 'Tanya harga'; tanya = true; } }
     var d = document.createElement('div'); d.className = 'nm-l';
     d.innerHTML = '<div class="nm-l-q"><div class="nm-l-qb"></div><div class="nm-l-id">' + E(id) + '</div></div>' +
-      '<div class="nm-l-t"><div class="nm-l-m">' + E(model) + '</div><div class="nm-l-s">SN: ' + E(sn) + '</div><div class="nm-l-s">' + E(spec) + '</div></div>';
+      '<div class="nm-l-t"><div class="nm-l-m">' + E(model) + '</div><div class="nm-l-s">SN: ' + E(sn) + '</div><div class="nm-l-s">' + E(spec) + '</div>' +
+      (s && s.status === 'Belum Ready' ? '<div class="nm-l-b" style="color:#b45309;background:#fff7ed;border-color:#fdba74"><i></i>BELUM READY</div>' : '') + '</div>';
     if (q) d.querySelector('.nm-l-qb').appendChild(q);
     return d;
   }
