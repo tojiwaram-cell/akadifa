@@ -1,4 +1,4 @@
-/*DASH-FUNGSI v1*/
+/*DASH-FUNGSI v2*/
 /* Semua kartu, tombol, dan baris Dashboard bisa diklik: filter Stok per status, rincian angka, isi harga cepat,
    transaksi terbaru membuka unit, baris tabel omzet memfilter bulan/tahun, kartu omzet membuka daftar penjualan. */
 function nmGoStock(st, q){ try{ stockStatusFilter = st || 'Semua'; stockSearch = q || ''; }catch(_){} currentTab = 'stock'; render(); window.scrollTo(0,0); }
@@ -100,6 +100,7 @@ function nmDashEnhance(c){
   const on = (t, fn, tip) => { const e = byLbl(t); if(!e) return; e.classList.add('db-click'); e.style.cursor = 'pointer'; e.title = tip || 'Klik untuk rincian'; e.onclick = fn; };
   on('Total Unit', () => nmGoStock('Semua'), 'Buka semua stok');
   on('Ready', () => nmGoStock('Ready'), 'Buka stok berstatus Ready');
+  on('Belum Ready', () => nmGoStock('Belum Ready'), 'Buka stok berstatus Belum Ready (belum bisa dijual)');
   on('Booking', () => nmGoStock('Booking'), 'Buka stok berstatus Booking');
   on('Sudah DP', () => nmGoStock('DP'), 'Buka stok berstatus DP');
   on('Nilai Modal Ready', () => nmDetail('modal'));

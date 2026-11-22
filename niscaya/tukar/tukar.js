@@ -1,4 +1,4 @@
-/*NM-TUKAR v1*/
+/*NM-TUKAR v2*/
 /* Rilis 0055 — Menu "Tukar Tambah".
    Satu transaksi = (1) unit dari stok dijual ke pelanggan (nota penjualan biasa: omzet = harga final penuh, laba = final − modal − biaya)
                     (2) laptop lama pelanggan masuk ke stok sebagai unit baru (ID berikutnya, status Ready, harga modal = nilai taksiran,
@@ -105,7 +105,7 @@
   function bukaForm(){
     var box = document.getElementById('modalBox'), ov = document.getElementById('overlay'); if (!box || !ov) return;
     var noted = {}; (D().sales || []).forEach(function(x){ noted[String(x.id)] = 1; });
-    var avail = (D().stock || []).filter(function(s){ return s.status !== 'Sold' && !noted[String(s.id)]; });
+    var avail = (D().stock || []).filter(function(s){ return s.status !== 'Sold' && s.status !== 'Belum Ready' && !noted[String(s.id)]; });
     var opts = avail.map(function(s){ var dp = dpUnit(s);
       return '<option value="' + E(s.id) + '">' + E(s.id) + ' — ' + E(s.merek) + ' ' + E(s.tipe) + ' (' + E(s.status) + (dp ? ' · DP ' + R(dp) : '') + (Number(s.hargaJual) ? ' · ' + R(s.hargaJual) : '') + ')</option>'; }).join('');
     var idMasuk = idBaru();

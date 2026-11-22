@@ -1,4 +1,4 @@
-/*IMPOR-AMAN v4*/
+/*IMPOR-AMAN v5*/
 /* Impor Excel "gabung pintar" + cadangan otomatis di VPS + tombol kembalikan + riwayat impor, dan ekspor Excel yang rapi.
    - Unit dicocokkan lewat ID (atau No Seri). ID baru -> ditambahkan; ID lama -> hanya kolom yang terisi di Excel yang diperbarui.
    - Tidak pernah diubah oleh impor: status unit lama, DP, titipan & riwayatnya, biaya unit Sold, harga unit Sold, data penjualan lama.
@@ -427,7 +427,7 @@ function nmLoadExcelJs(){
 }
 function nmF(fn, s, d){ try{ return typeof window[fn] === 'function' ? window[fn](s) : d; }catch(_){ return d; } }
 function nmExportData(){
-  const ord = { Ready: 0, Booking: 1, DP: 2, Sold: 3 };
+  const ord = { Ready: 0, 'Belum Ready': 1, Booking: 2, DP: 3, Sold: 4 };
   const urutT = typeof window.nmUrutTerbaru === 'function' ? window.nmUrutTerbaru(DATA.stock || []) : (DATA.stock || []).slice().reverse();
   const posT = new Map(urutT.map((s, i) => [s, i]));
   const stock = urutT.slice().sort((a, b) => (ord[a.status] ?? 9) - (ord[b.status] ?? 9) || posT.get(a) - posT.get(b));
@@ -472,7 +472,7 @@ function nmExportData(){
       sn: cl(u.noSeri) || '-', sup: cl(u.supplier) || '-', modal: modal || 0, akhir: Number(s.jual) || 0, mk: cl(s.marketing) }; })
     .sort((a, b) => a.tgl < b.tgl ? -1 : a.tgl > b.tgl ? 1 : String(a.id).localeCompare(String(b.id), 'id', {numeric:true}));
   return { lapRows, D, stockCols, stockRows, salesCols, salesRows, biayaCols, biayaRows, supCols, supRows, mktCols, mktRows,
-    ring: { ready: cnt('Ready'), booking: cnt('Booking'), dp: cnt('DP'), sold: cnt('Sold'), total: stock.length,
+    ring: { ready: cnt('Ready'), belum: cnt('Belum Ready'), booking: cnt('Booking'), dp: cnt('DP'), sold: cnt('Sold'), total: stock.length,
       modalAktif: sum(aktif, s => nmF('modalTotal', s, Number(s.hargaModal)||0)), jualAktif: sum(aktif, akhir), titip: stock.filter(s => s.lokasi && s.lokasi.toko && s.status !== 'Sold').length,
       trx: sales.length, omzet: sum(sales, s => s.jual), untung: sum(sales, s => s.untung), perBulan } };
 }
@@ -536,7 +536,7 @@ async function nmExportStyled(ExcelJS, X){
   const wb = new ExcelJS.Workbook(); wb.creator = 'NISCAYA MAKASSAR'; wb.created = new Date();
   const BLUE = 'FF1E3A8A', ACC = 'FF2563EB', ZEB = 'FFF5F8FF', LINE = 'FFD9E1F2';
   const RP = '"Rp" #,##0;[Red]-"Rp" #,##0;"-"', DT = 'dd/mm/yyyy';
-  const ST = { Ready: ['FFDCFCE7','FF067647'], Booking: ['FFFEF3C7','FFB45309'], DP: ['FFEDE9FE','FF6D28D9'], Sold: ['FFE5E7EB','FF374151'] };
+  const ST = { Ready: ['FFDCFCE7','FF067647'], 'Belum Ready': ['FFFFEDD5','FFB45309'], Booking: ['FFFEF3C7','FFB45309'], DP: ['FFEDE9FE','FF6D28D9'], Sold: ['FFE5E7EB','FF374151'] };
   const border = { top:{style:'thin',color:{argb:LINE}}, left:{style:'thin',color:{argb:LINE}}, bottom:{style:'thin',color:{argb:LINE}}, right:{style:'thin',color:{argb:LINE}} };
   const sheet = (name, cols, rows, opt = {}) => {
     const ws = wb.addWorksheet(name, { views: [{ state: 'frozen', xSplit: opt.freezeCol || 0, ySplit: 1, zoomScale: 100 }],
@@ -577,7 +577,7 @@ async function nmExportStyled(ExcelJS, X){
   const kv = (k, v, fmt, color) => { const a = ws.getCell(`B${r}`), b = ws.getCell(`C${r}`); a.value = k; b.value = v; a.font = { size: 11 }; b.font = { bold: true, size: 11, color: color ? { argb: color } : undefined };
     if(fmt) b.numFmt = fmt; b.alignment = { horizontal: 'right' }; [a, b].forEach(c => c.border = { bottom: { style: 'hair', color: { argb: LINE } } }); r++; };
   head('Stok laptop');
-  kv('Ready', R.ready, '#,##0" unit"', ST.Ready[1]); kv('Booking', R.booking, '#,##0" unit"', ST.Booking[1]); kv('Sudah DP', R.dp, '#,##0" unit"', ST.DP[1]);
+  kv('Ready', R.ready, '#,##0" unit"', ST.Ready[1]); kv('Belum Ready', R.belum || 0, '#,##0" unit"', ST['Belum Ready'][1]); kv('Booking', R.booking, '#,##0" unit"', ST.Booking[1]); kv('Sudah DP', R.dp, '#,##0" unit"', ST.DP[1]);
   kv('Sold', R.sold, '#,##0" unit"', ST.Sold[1]); kv('Total unit tercatat', R.total, '#,##0" unit"'); kv('Dititip di toko mitra', R.titip, '#,##0" unit"');
   kv('Nilai modal stok aktif', R.modalAktif, RP); kv('Nilai jual stok aktif', R.jualAktif, RP); kv('Potensi untung stok aktif', R.jualAktif - R.modalAktif, RP, 'FF067647');
   r++; head('Penjualan');
@@ -611,7 +611,7 @@ function nmExportPlain(X){
     cols.forEach((c, j) => { if(c[2] !== 'rp') return; for(let i = 1; i <= rows.length; i++){ const cell = ws[XLSX.utils.encode_cell({ r: i, c: j })]; if(cell && cell.t === 'n') cell.z = '"Rp" #,##0'; } });
     XLSX.utils.book_append_sheet(wb, ws, name); };
   const R = X.ring;
-  const ring = XLSX.utils.aoa_to_sheet([['NISCAYA MAKASSAR — Laporan Data'], ['Diekspor', new Date().toLocaleString('id-ID')], [], ['Ready', R.ready], ['Booking', R.booking], ['Sudah DP', R.dp], ['Sold', R.sold],
+  const ring = XLSX.utils.aoa_to_sheet([['NISCAYA MAKASSAR — Laporan Data'], ['Diekspor', new Date().toLocaleString('id-ID')], [], ['Ready', R.ready], ['Belum Ready', R.belum || 0], ['Booking', R.booking], ['Sudah DP', R.dp], ['Sold', R.sold],
     ['Total unit', R.total], ['Nilai modal stok aktif', R.modalAktif], ['Nilai jual stok aktif', R.jualAktif], [], ['Jumlah transaksi', R.trx], ['Total omzet', R.omzet], ['Total untung tercatat', R.untung]]);
   ring['!cols'] = [{ wch: 28 }, { wch: 20 }]; XLSX.utils.book_append_sheet(wb, ring, 'RINGKASAN');
   add('LAPORAN PENJUALAN', NM_LAP_COLS, X.lapRows.map((r, i) => [i + 1, r.tgl, r.id, r.tipe, r.spek, r.sn, r.sup, r.modal, r.akhir, r.mk || 'Tanpa marketing']));

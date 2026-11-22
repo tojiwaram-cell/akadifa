@@ -235,3 +235,13 @@ laba = final − modal − biaya) **dan** laptop lama pelanggan masuk Stok sebag
 supplier `TUKAR TAMBAH`). Ringkasan menghitung uang tambahan = final − nilai tukar − DP (bila minus, toko yang membayar).
 Riwayat dibaca dari `sales[].tukarTambah` & `stock[].tukarTambah` (tanpa kunci baru di DATA). Ada cetak nota A5 dan pembatalan
 (hanya bila unit tukar belum terjual). Sumber: `tukar/tukar.js` → `python3 niscaya/tukar/build_patch.py` → `patches/0055-tukar-tambah.py`.
+## Status & kolom Belum Ready (rilis 0056)
+Status baru **Belum Ready** = unit sudah tercatat di stok tetapi **belum bisa dijual** (masih dicek/service/dibersihkan).
+- **Stok → Papan**: kolom **🔧 Belum Ready** paling kiri (garis oranye); kartu bisa diseret ke/dari kolom lain dan ditambah langsung dari kolom itu.
+- Pilihan Status di form Edit Laptop, filter status, badge oranye di Tabel, kartu **Belum Ready** di Dashboard (klik → stok berstatus itu).
+- **Tidak dijual**: tidak tampil di Katalog WA & katalog online `/tapi/katalog`, tidak bisa dipilih di **Catat Penjualan** (kecuali dibuka dari unit itu sendiri)
+  maupun **Tukar Tambah**. Halaman unit `/tapi/u/<ID>` menampilkan "🔧 Sedang disiapkan".
+- DP: Belum Ready diperlakukan seperti Ready (pindah DP → Belum Ready membatalkan DP; isi DP → status DP).
+- Excel: impor mengenali teks "Belum Ready"; ekspor STOK LAPTOP berwarna oranye & dikelompokkan setelah Ready, ringkasan memuat jumlahnya.
+Sumber: `belumready/belumready.js` → `python3 niscaya/belumready/build_patch.py` → `patches/0056-belum-ready.py` (edit teks idempoten + blok `/*NM-BELUM-READY v1*/`);
+juga `dash2/dashfungsi.js` v2, `tukar/tukar.js` v2, `imporaman/imporaman.js` v5, `teknisi/server.py` (halaman unit).

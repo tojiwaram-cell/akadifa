@@ -240,6 +240,11 @@ def page_unit(pub, u, uid, own=None):
         harga = ("<div class=\"price\">%s%s</div>" % (("<span class=\"old\">%s</span>" % rp(u["h"])) if u["k"] and u["h"] > u["a"] else "", rp(u["a"] or u["h"]))) if (u["a"] or u["h"]) else ""
         aksi = (harga or "<div class=\"price\" style=\"font-size:18px\">Harga: tanya via WhatsApp</div>") + "<a class=\"btn\" href=\"%s\">💬 Tanya / pesan unit ini via WhatsApp</a>" % e(wa("Halo %s, saya tertarik dengan unit %s (%s). Apakah masih tersedia?" % (TOKO, u["i"], nama(u))))
         lain, judul = mirip(units, u, 4), "Pilihan lain yang mirip"
+    elif st == "Belum Ready":
+        chip = "<span class=\"chip bk\">🔧 Sedang disiapkan</span>"
+        aksi = ("<div class=\"note\">Unit ini sedang disiapkan (pengecekan/service) dan <b>belum bisa dijual</b>. Kami bisa kabari Anda begitu siap.</div>"
+                "<a class=\"btn\" href=\"%s\">💬 Kabari saya jika unit ini sudah siap</a>" % e(wa("Halo %s, tolong kabari saya jika unit %s (%s) sudah siap dijual. Terima kasih." % (TOKO, u["i"], nama(u)))))
+        lain, judul = mirip(units, u, 6), "Unit serupa yang sudah tersedia"
     elif st in ("Booking", "DP"):
         chip = "<span class=\"chip bk\">🕓 Sudah dipesan</span>"
         aksi = ("<div class=\"note\">Unit ini sedang dipesan pembeli lain. Kalau pesanan batal, kami bisa kabari Anda.</div>"
