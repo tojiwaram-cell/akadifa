@@ -1,4 +1,4 @@
-/*NM-NOTA-JUAL v1*/
+/*NM-NOTA-JUAL v2*/
 /* Rilis 0058 — Cetak Nota Penjualan untuk unit yang sudah terjual (Sold).
    - Menu Penjualan: tombol 🧾 di setiap baris transaksi.
    - Form Edit Laptop unit Sold yang sudah punya nota penjualan: tombol "🧾 Cetak Nota".
@@ -40,7 +40,7 @@
       '.cat{margin-top:10px;font-size:.92em;white-space:pre-wrap;border:1px dashed #aaa;padding:6px 8px;border-radius:4px}' +
       '.ttd{display:flex;justify-content:space-between;margin-top:' + (struk ? 34 : 50) + 'px;text-align:center}.ttd div{width:42%;border-top:1px solid #333;padding-top:4px}' +
       '.ft{margin-top:14px;text-align:center;color:#666;font-size:.85em}@media print{.np{display:none}}</style></head><body>' +
-      '<div class="hd"><img src="' + E(logo) + '" onerror="this.remove()" alt=""><div><h1>NISCAYA MAKASSAR</h1><div class="sub">Laptop second berkualitas · Makassar</div></div></div>' +
+      '<div class="hd"><img src="' + E(logo) + '" onerror="this.remove()" alt=""><div><h1>NISCAYA MAKASSAR</h1><div class="sub">Ruko New Zamrud, Jl. A.P. Pettarani Blok E18, Makassar<br>WA 0821-8942-735</div></div></div>' +
       '<div class="ttl"><b>NOTA PENJUALAN</b><span class="dim">No. ' + E(noNota(s)) + '<br>Tanggal: ' + E(tgl(s.tanggal)) + '</span></div>' +
       '<table>' + row('Pembeli', '<b>' + E(s.pembeli || '-') + '</b>') + (s.hp ? row('No. HP', E(s.hp)) : '') + (s.marketing ? row('Marketing', E(s.marketing)) : '') + '</table>' +
       '<h2>Barang</h2><table>' +
